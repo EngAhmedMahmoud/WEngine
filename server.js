@@ -13,6 +13,7 @@ DB_CONNECTION.connection;
 //console.log(Widget.getWidgetConfiguration("camera_view"));
 //console.log(Widget.checkDriverDependancy("camera_view"));
 //console.log(Widget.checkWidgetDependancy("camera_view"));
+console.log(Widget.checkEntryPoint("camera_view"));
 
 //creating express application
 const app = express();

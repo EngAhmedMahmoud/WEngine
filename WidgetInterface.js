@@ -2,6 +2,7 @@
 const fs = require("fs");
 const http = require("http");
 const zipUnzipPackage = require("adm-zip");
+const Widget = require(""); 
 
 class Widget{
     //url must be http and accurate path to zip file 
@@ -43,7 +44,7 @@ class Widget{
                     if(!fs.existsSync(depDriverPath)){
                         driverExist.success=0;
                         drivers.push(driver);
-                        driverExist.drivers = drivers;
+                        driverExist.errors = drivers;
                     }
                 }
                 if(driverExist.success===0){
@@ -71,7 +72,7 @@ class Widget{
                     if(!fs.existsSync(depWidgetPath)){
                         widgetExist.success=0;
                         widgets.push(driver);
-                        driverExist.widgets = widgets;
+                        driverExist.errors = widgets;
                     }
                 }
                 if(widgetExist.success === 0){
@@ -81,6 +82,26 @@ class Widget{
                 }
                
             }
+        }
+    }
+    checkEntryPoint(widgetName){
+        const entryPoint = this.getWidgetConfiguration(widgetName).entry_point;
+        const entryPath = `installed/${widgetName}/views`;
+        let entryPointExist = {};
+        let errors =[];
+        if (fs.existsSync(entryPath)){
+            let entryPintPath = `${entryPath}/${entryPoint}`;
+            if(!fs.existsSync(entryPintPath)){
+                entryPointExist.success=0;
+                errors.push(entryPoint);
+                entryPointExist.errors = errors;
+            }else{
+                entryPointExist.success=1;
+            }
+        }else{
+            entryPointExist.success=0;
+            errors.push(entryPath);
+            entryPointExist.errors = errors;
         }
     }
 }
