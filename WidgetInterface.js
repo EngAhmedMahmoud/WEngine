@@ -102,6 +102,7 @@ class Widget{
             errors.push(entryPath);
             entryPointExist.errors = errors;
         }
+        return entryPointExist;
     }
 }
 var widgetInterface = new Widget();
