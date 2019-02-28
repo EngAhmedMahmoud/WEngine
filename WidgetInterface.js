@@ -31,14 +31,27 @@ class Widget{
     checkDriverDependancy(widgetName){
         const dependancyDrivers = this.getWidgetConfiguration(widgetName).dep_drivers;
         const driverPath = `installed/${widgetName}/driver_dep`;
+        const dependancyDriversCount = dependancyDrivers.length;
+
         if(dependancyDrivers){
+            let driverExist = {};
+            let drivers = [];
             if (fs.existsSync(driverPath)) {
-                dependancyDrivers.forEach((driver)=>{
-                    let depDriverPath = `${driverPath}/${driver.variable_name}.json`;
+                for(let i = 0; i<dependancyDriversCount;i++){
+                    let driver = dependancyDrivers[i].variable_name;
+                    let depDriverPath = `${driverPath}/${driver}.json`;
                     if(!fs.existsSync(depDriverPath)){
-                        return {success:0,dep_drivers:driver.variable_name,msg:"Not Exist"};
+                        driverExist.success=0;
+                        drivers.push(driver);
+                        driverExist.drivers = drivers;
                     }
-                });
+                }
+                if(driverExist.success===0){
+                    return driverExist;
+                }else{
+                    return {success:1};
+                }
+               
             }
         }
     }
