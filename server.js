@@ -11,7 +11,8 @@ DB_CONNECTION.connection;
 //widget 
 //Widget.getWidget("http://download2262.mediafire.com/stxoem78h5tg/k6453kpdzsi942a/camera_view.zip","camera_view");
 //console.log(Widget.getWidgetConfiguration("camera_view"));
-console.log(Widget.checkDependancy("camera_view"));
+//console.log(Widget.checkDriverDependancy("camera_view"));
+//console.log(Widget.checkWidgetDependancy("camera_view"));
 
 //creating express application
 const app = express();

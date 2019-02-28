@@ -58,14 +58,28 @@ class Widget{
     checkWidgetDependancy(widgetName){
         const dependancyWidgets = this.getWidgetConfiguration(widgetName).dep_widgets;
         const widgetPath = `installed/${widgetName}/widget_dep`;
+        const dependancyWidgetsCount = dependancyWidgets.length;
+
         if(dependancyWidgets){
+            let widgetExist = {};
+            let widgets = [];
             if (fs.existsSync(widgetPath)) {
-                dependancyWidgets.forEach((Widget)=>{
-                    let depWidgetPath = `${widgetPath}/${Widget.variable_name}.json`;
+                for(let i = 0; i<dependancyWidgetsCount;i++){
+                    let widget = dependancyDrivers[i].variable_name;
+                    let depWidgetPath = `${widgetPath}/${widget.variable_name}.json`;
+
                     if(!fs.existsSync(depWidgetPath)){
-                        return {success:0,dep_drivers:driver.variable_name,msg:"Not Exist"};
+                        widgetExist.success=0;
+                        widgets.push(driver);
+                        driverExist.widgets = widgets;
                     }
-                });
+                }
+                if(widgetExist.success === 0){
+                    return widgetExist;
+                }else{
+                    return {success:1};
+                }
+               
             }
         }
     }
