@@ -1,16 +1,60 @@
 "use strict";
 const fs = require("fs");
 const http = require("http");
+const zipUnzipPackage = require("adm-zip");
+
 class Widget{
+    //url must be http and accurate path to zip file 
     getWidget(url,fileName){
         var tmpFilePath = "tmp/" + fileName + ".zip";
-        
-        request(url, function(err, resp, body){
-            if(err) throw err;
-            fs.writeFile(outputFile, body, function(err) {
-              console.log("file written!");
+        http.get(url,(response)=>{
+            response.on("data",(data)=>{
+                fs.appendFileSync(tmpFilePath,data);
+            });
+            response.on("end",(data)=>{
+                var widgetZipFile = new zipUnzipPackage(tmpFilePath);
+                widgetZipFile.extractAllTo("installed/"+fileName);
+                fs.unlinkSync(tmpFilePath);
             });
         });
+    }
+    validateWidget(widgetName){
+        //check hierarchy
+        //check dependancy 
+        //check  
+    }
+    getWidgetConfiguration(widgetName){
+        var configFile = `installed/${widgetName}/config.json`;
+        var configurations = JSON.parse(fs.readFileSync(configFile,"UTF-8"));
+        return configurations;
+    }
+    checkDriverDependancy(widgetName){
+        const dependancyDrivers = this.getWidgetConfiguration(widgetName).dep_drivers;
+        const driverPath = `installed/${widgetName}/driver_dep`;
+        if(dependancyDrivers){
+            if (fs.existsSync(driverPath)) {
+                dependancyDrivers.forEach((driver)=>{
+                    let depDriverPath = `${driverPath}/${driver.variable_name}.json`;
+                    if(!fs.existsSync(depDriverPath)){
+                        return {success:0,dep_drivers:driver.variable_name,msg:"Not Exist"};
+                    }
+                });
+            }
+        }
+    }
+    checkWidgetDependancy(widgetName){
+        const dependancyWidgets = this.getWidgetConfiguration(widgetName).dep_widgets;
+        const widgetPath = `installed/${widgetName}/widget_dep`;
+        if(dependancyWidgets){
+            if (fs.existsSync(widgetPath)) {
+                dependancyWidgets.forEach((Widget)=>{
+                    let depWidgetPath = `${widgetPath}/${Widget.variable_name}.json`;
+                    if(!fs.existsSync(depWidgetPath)){
+                        return {success:0,dep_drivers:driver.variable_name,msg:"Not Exist"};
+                    }
+                });
+            }
+        }
     }
 }
 var widgetInterface = new Widget();
