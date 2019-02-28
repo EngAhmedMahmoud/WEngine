@@ -1,9 +1,10 @@
 "use strict";
 const fs = require("fs");
+const http = require("http");
 class Widget{
-    getWidget(url){
-        let splittedUrl = url.split("/");
-        let outputFile = splittedUrl.pop();
+    getWidget(url,fileName){
+        var tmpFilePath = "tmp/" + fileName + ".zip";
+        
         request(url, function(err, resp, body){
             if(err) throw err;
             fs.writeFile(outputFile, body, function(err) {
