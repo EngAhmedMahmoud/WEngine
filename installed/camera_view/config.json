@@ -26,5 +26,5 @@
                 "min":{"width":"40","height":"40"},
                 "max":{"width":"50","height":"50"}
             },
-        "location":{"x":"Left","y":"Bottom"}
+    "location":{"x":"Left","y":"Bottom"}
     }
