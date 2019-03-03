@@ -19,10 +19,11 @@ class Widget{
             });
         });
     }
-    validateWidget(widgetName){
-        //check hierarchy
-        //check dependancy 
-        //check  
+    validateWidgetHierarcy(widgetName){
+        //check driver dependancy 
+        //check widget dependancy 
+        //check entry point
+        //check static files
     }
     getWidgetConfiguration(widgetName){
         var configFile = `installed/${widgetName}/config.json`;
@@ -104,6 +105,117 @@ class Widget{
         }
         return entryPointExist;
     }
+    checkCssFiles(widgetName){
+        const styles        = this.getWidgetConfiguration(widgetName).styles;
+        const cssPath       = `installed/${widgetName}/assets/css`;
+        
+        if(styles){
+            const cssFilesCount = styles.length;
+            let cssExist = {};
+            let css = [];
+            if (fs.existsSync(cssPath)) {
+                for(let i = 0; i<cssFilesCount;i++){
+                    let cssFile = styles[i];
+                    let cssFilePath = `${cssPath}/${cssFile}`;
+                    if(!fs.existsSync(cssFilePath)){
+                        cssExist.success=0;
+                        css.push(cssFile);
+                        cssExist.errors = css;
+                        cssExist.msg="Not Exist";
+                    }
+                }
+                if(cssExist.success===0){
+                    return cssExist;
+                }else{
+                    return {success:1};
+                }
+            }
+        }else{
+            return {
+                success:0,
+                errors:cssPath,
+                msg:"Not Exist"
+            }
+        }
+
+    }
+    checkJsFiles(widgetName){
+        const jsScripts    = this.getWidgetConfiguration(widgetName).scripts;
+        const jsPath       = `installed/${widgetName}/assets/js`;
+        if(jsScripts){
+            const jsFilesCount = jsScripts.length;
+            let jsExist = {};
+            let css = [];
+            if (fs.existsSync(cssPath)) {
+                for(let i = 0; i<jsFilesCount;i++){
+                    let jsFile = jsScripts[i];
+                    let jsFilePath = `${cssPath}/${jsFile}`;
+                    if(!fs.existsSync(jsFilePath)){
+                        jsExist.success=0;
+                        css.push(jsFile);
+                        jsExist.errors = css;
+                        jsExist.msg="Not Exist";
+                    }
+                }
+                if(jsExist.success===0){
+                    return jsExist;
+                }else{
+                    return {success:1};
+                }
+            }
+        }else{
+            return {
+                success:0,
+                errors:jsPath,
+                msg:"Not Exist"
+            }
+        }
+    }
+    saveWidget(widgetName){
+        const widgetContent = this.getWidgetConfiguration(widgetName);
+        var widget = new Widget();
+        var dep_drivers = [];
+        var dep_widgets = [];
+        var dep_parsed = widgetContent.dep_drivers;
+        dep_parsed.forEach(driver => {
+        let dep = {};
+        dep.variable_name = driver.variable_name;
+        dep.version = driver.version;
+        dep_drivers.push(dep);
+        });
+        var dep_parsed_w = widgetContent.dep_widgets;
+        dep_parsed_w.forEach(widget => {
+        let dep = {};
+        dep.variable_name = widget.variable_name;
+        dep.version = widget.version;
+        dep_widgets.push(dep);
+        });
+        widget.name = (widgetContent.name) ? widgetContent.name : "";
+        widget.variableName = (widgetContent.variable_name) ? widgetContent.variable_name : "";
+        widget.description = (widgetContent.desc) ? widgetContent.desc : "";
+        widget.version = (widgetContent.version) ? widgetContent.version : "";
+        widget.minFoundationVersion = (widgetContent.min_foundation) ? widgetContent.min_foundation : "";
+        widget.entry_point = (widgetContent.entry_point) ? widgetContent.entry_point : "";
+        widget.location.x = (widgetContent.location && widgetContent.location.x) ? widgetContent.location.x : "";
+        widget.location.y = (widgetContent.location && widgetContent.location.y) ? widgetContent.location.y : "";
+        widget.size.min.width = (widgetContent.size && widgetContent.size.min && widgetContent.size.min.width) ? widgetContent.size.min.width : "";
+        widget.size.min.height = (widgetContent.size && widgetContent.size.min && widgetContent.size.min.height) ? widgetContent.size.min.height : "";
+        widget.size.max.width = (widgetContent.size && widgetContent.size.max && widgetContent.size.max.width) ? widgetContent.size.max.width : "";
+        widget.size.max.height = (widgetContent.size && widgetContent.size.max && widgetContent.size.max.height) ? widgetContent.size.max.height : "";
+        widget.langs.en_US = (widgetContent.langs && widgetContent.langs.en_US) ? widgetContent.langs.en_US : false;
+        widget.langs.ar_EG = (widgetContent.langs && widgetContent.langs.ar_EG) ? widgetContent.langs.ar_EG : false;
+        widget.langs.es_ES = (widgetContent.langs && widgetContent.langs.es_ES) ? widgetContent.langs.es_ES : false;
+        widget.langs.de_DE = (widgetContent.langs && widgetContent.langs.de_DE) ? widgetContent.langs.de_DE : false;
+        widget.langs.fr_FR = (widgetContent.langs && widgetContent.langs.fr_FR) ? widgetContent.langs.fr_FR : false;
+        widget.dep_drivers = (dep_drivers) ? dep_drivers : [];
+        widget.dep_widgets = (dep_widgets) ? dep_widgets : [];
+        widget.styles = (widgetContent.styles) ? widgetContent.styles : [];
+        widget.scripts = (widgetContent.scripts) ? widgetContent.scripts : [];
+        widget.save();
+    }
+    
+
 }
 var widgetInterface = new Widget();
 module.exports = widgetInterface;
+
