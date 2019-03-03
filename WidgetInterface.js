@@ -5,37 +5,78 @@ const zipUnzipPackage = require("adm-zip");
 const WidgetModel = require("./Models/widget_config"); 
 
 class Widget{
-    //url must be http and accurate path to zip file 
-    getWidget(url,fileName){
-        var tmpFilePath = "tmp/" + fileName + ".zip";
-        http.get(url,(response)=>{
-            response.on("data",(data)=>{
-                fs.appendFileSync(tmpFilePath,data);
+    getWidget(url,widgetName){
+        try{
+            var tmpFilePath = "tmp/" + widgetName + ".zip";
+            http.get(url,(response)=>{
+                response.on("data",(data)=>{
+                    fs.appendFileSync(tmpFilePath,data);
+                });
+                response.on("end",(data)=>{
+                    var widgetZipFile = new zipUnzipPackage(tmpFilePath);
+                    widgetZipFile.extractAllTo("installed/"+widgetName);
+                    fs.unlinkSync(tmpFilePath);
+                });
+                response.on("error",(error)=>{
+                    return {
+                        success:0,
+                        errors:error
+                    }
+                });
             });
-            response.on("end",(data)=>{
-                var widgetZipFile = new zipUnzipPackage(tmpFilePath);
-                widgetZipFile.extractAllTo("installed/"+fileName);
-                fs.unlinkSync(tmpFilePath);
-            });
-        });
+            
+        }catch(error){
+            if(error){
+                return {
+                    success:0,
+                    errors:error
+                }
+            }
+        }
     }
     validateWidgetHierarcy(widgetName){
-        //check driver dependancy 
-        //check widget dependancy 
-        //check entry point
-        //check static files
+        let widgetDep       = this.checkWidgetDependancy(widgetName);
+        let driverDep       = this.checkDriverDependancy(widgetName);
+        let checkJsFiles    = this.checkJsFiles(widgetName);
+        let checkCssFiles   = this.checkCssFiles(widgetName);
+        let checkEntryPoint = this.checkEntryPoint(widgetName);
+        let errors          = [];
+        (widgetDep.success && widgetDep.success != 1) ? errors.push(widgetDep.msg):{success:1};
+        (driverDep.success && driverDep.success != 1) ? errors.push(driverDep.msg):{success:1};
+        (checkCssFiles.success && checkCssFiles.success != 1) ? errors.push(checkCssFiles.msg):{success:1};
+        (checkEntryPoint.success && checkEntryPoint.success != 1) ? errors.push(checkEntryPoint.msg):{success:1};
+        (checkJsFiles.success != 1) ? errors.push(checkJsFiles.msg):{success:1};
+
+        if(errors.length === 0){
+            return {
+                success:1
+            }
+        }else{
+            return {
+                success:0,
+                errors:errors
+            }
+        }
     }
     getWidgetConfiguration(widgetName){
         var configFile = `installed/${widgetName}/config.json`;
-        var configurations = JSON.parse(fs.readFileSync(configFile,"UTF-8"));
-        return configurations;
+        if(fs.existsSync(configFile)){
+            var configurations = JSON.parse(fs.readFileSync(configFile,"UTF-8"));
+            return configurations;
+        }else{
+            return {
+                success:0,
+                msg:"configuration file not exist"
+            }
+        }
+       
     }
     checkDriverDependancy(widgetName){
         const dependancyDrivers = this.getWidgetConfiguration(widgetName).dep_drivers;
         const driverPath = `installed/${widgetName}/driver_dep`;
-        const dependancyDriversCount = dependancyDrivers.length;
 
         if(dependancyDrivers){
+            const dependancyDriversCount = dependancyDrivers.length;
             let driverExist = {};
             let drivers = [];
             if (fs.existsSync(driverPath)) {
@@ -53,16 +94,24 @@ class Widget{
                 }else{
                     return {success:1};
                 }
-               
+            }else{
+                return {
+                    success:0,
+                    msg:`${driverPath} Not exist`
+                }
+            }
+        }else{
+            return {
+                success:0,
+                msg:"No driver dependancies"
             }
         }
     }
     checkWidgetDependancy(widgetName){
         const dependancyWidgets = this.getWidgetConfiguration(widgetName).dep_widgets;
         const widgetPath = `installed/${widgetName}/widget_dep`;
-        const dependancyWidgetsCount = dependancyWidgets.length;
-
         if(dependancyWidgets){
+            const dependancyWidgetsCount = dependancyWidgets.length;
             let widgetExist = {};
             let widgets = [];
             if (fs.existsSync(widgetPath)) {
@@ -81,6 +130,11 @@ class Widget{
                     return {success:1};
                 }
                
+            }
+        }else{
+            return {
+                success:0,
+                msg:"No widget dependancies"
             }
         }
     }
@@ -121,7 +175,7 @@ class Widget{
                         cssExist.success=0;
                         css.push(cssFile);
                         cssExist.errors = css;
-                        cssExist.msg="Not Exist";
+                        cssExist.msg=`css files Not Exist`;
                     }
                 }
                 if(cssExist.success===0){
@@ -134,7 +188,7 @@ class Widget{
             return {
                 success:0,
                 errors:cssPath,
-                msg:"Not Exist"
+                msg:`${cssPath} Not Exist`
             }
         }
 
@@ -145,16 +199,16 @@ class Widget{
         if(jsScripts){
             const jsFilesCount = jsScripts.length;
             let jsExist = {};
-            let css = [];
-            if (fs.existsSync(cssPath)) {
+            let js = [];
+            if (fs.existsSync(jsPath)) {
                 for(let i = 0; i<jsFilesCount;i++){
                     let jsFile = jsScripts[i];
-                    let jsFilePath = `${cssPath}/${jsFile}`;
+                    let jsFilePath = `${jsPath}/${jsFile}`;
                     if(!fs.existsSync(jsFilePath)){
                         jsExist.success=0;
-                        css.push(jsFile);
-                        jsExist.errors = css;
-                        jsExist.msg="Not Exist";
+                        js.push(jsFile);
+                        jsExist.errors = js;
+                        jsExist.msg="JS files Not Exist";
                     }
                 }
                 if(jsExist.success===0){
@@ -162,18 +216,21 @@ class Widget{
                 }else{
                     return {success:1};
                 }
+            }else{
+                return {
+                    success:0,
+                    errors:jsPath,
+                    msg:`${jsPath} Not Exist`
+                }
             }
         }else{
-            return {
-                success:0,
-                errors:jsPath,
-                msg:"Not Exist"
-            }
+            return {success:1};  
         }
     }
     saveWidget(widgetName){
         const widgetContent = this.getWidgetConfiguration(widgetName);
-        var widget = new Widget();
+        var widget = new WidgetModel();
+        
         var dep_drivers = [];
         var dep_widgets = [];
         var dep_parsed = widgetContent.dep_drivers;
@@ -213,9 +270,52 @@ class Widget{
         widget.scripts = (widgetContent.scripts) ? widgetContent.scripts : [];
         widget.save();
     }
-    
-
+    listDependantDrivers(Drivers,widgetName){
+        const dependancyDrivers = this.getWidgetConfiguration(widgetName).dep_drivers;
+        if(dependancyDrivers){
+            let drivers =[];
+            const driverCount = dependancyDrivers.length;
+            for(let i=0; i < driverCount;i++){
+                drivers.push(dependancyDrivers[i].variable_name);
+            }
+            //check drivers 
+           const check = (Drivers.sort().toString() == drivers.sort().toString())?true:false;
+           if(check){
+               return {
+                   success:1,
+               }
+           }else{
+               return{
+                   success:0
+               }
+           }
+        }
+       
+    }
 }
-var widgetInterface = new Widget();
+class Installation extends Widget{
+    install(url,widgetName){
+        let getWidget = this.getWidget(url,widgetName);
+        // let checkHierarcy =this.validateWidgetHierarcy(widgetName);
+        // let errors =[];
+        // if(getWidget.success !=1){
+        //     errors.push(getWidget.errors);
+        // }
+        // if(checkHierarcy.success !=1){
+        //     errors.push(checkHierarcy.errors);
+        // }
+        // if(errors.length ==0){
+        //     return {
+        //         success:1
+        //     }
+        // }else{
+        //     return {
+        //         success:0,
+        //         errors:errors
+        //     }
+        // }
+    }
+}
+var widgetInterface = new Installation();
 module.exports = widgetInterface;
 
