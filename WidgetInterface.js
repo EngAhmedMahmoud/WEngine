@@ -5,32 +5,61 @@ const zipUnzipPackage = require("adm-zip");
 const WidgetModel = require("./Models/widget_config"); 
 
 class Widget{
-    getWidget(url,widgetName){
+    ExtractZipFile(source,dest){
         try{
-            var tmpFilePath = "tmp/" + widgetName + ".zip";
-            http.get(url,(response)=>{
-                response.on("data",(data)=>{
-                    fs.appendFileSync(tmpFilePath,data);
-                });
-                response.on("end",(data)=>{
-                    var widgetZipFile = new zipUnzipPackage(tmpFilePath);
-                    widgetZipFile.extractAllTo("installed/"+widgetName);
-                    fs.unlinkSync(tmpFilePath);
-                });
-                response.on("error",(error)=>{
-                    return {
-                        success:0,
-                        errors:error
-                    }
-                });
-            });
-            
+            var widgetZipFile = new zipUnzipPackage(source);
+            widgetZipFile.extractAllTo(dest);
+            return {
+                success:1
+            }
         }catch(error){
-            if(error){
-                return {
-                    success:0,
-                    errors:error
-                }
+            return {
+                success:0,
+                msg:`${source} Extracting Error!!! To ${dest}`
+            }
+        }
+        
+    }
+    deleteFileDirectory(source){
+        try{
+            fs.unlinkSync(source);
+            return {
+                success:1
+            }
+        }catch(error){
+            return {
+                success:0,
+                msg:`${source} Deleting Error!!!`
+
+            }
+        }
+        
+    }
+    renameDir(oldName,newName){
+        try{
+            fs.renameSync(oldName, newName);
+            return {
+                success:1
+            }
+        }catch(error){
+            return {
+                success:0,
+                msg:`${oldName}  To ${newName} Rename Error!!!`,
+                error:error
+            }
+        }
+    }
+    downloadFile(tmpFilePath,data){
+        try{
+            fs.appendFileSync(tmpFilePath,data);
+            return {
+                success:1
+            }
+        }catch(error){
+            return {
+                success:0,
+                msg:"Downloading error!!",
+                error:error
             }
         }
     }
@@ -296,6 +325,7 @@ class Widget{
 class Installation extends Widget{
     install(url,widgetName){
         let getWidget = this.getWidget(url,widgetName);
+        console.log(getWidget);
         // let checkHierarcy =this.validateWidgetHierarcy(widgetName);
         // let errors =[];
         // if(getWidget.success !=1){
