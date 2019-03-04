@@ -2,6 +2,7 @@
 require("dotenv/config");
 const express = require("express");
 const bodyParser = require("body-parser");
+const path = require("path");
 const widgetRouter = require("./router")
 const DB_CONNECTION = require("./utils/DatabaseConnection");
 const Widget = require("./WidgetInterface");
@@ -19,10 +20,11 @@ DB_CONNECTION.connection;
 //console.log(Widget.saveWidget("camera_view"));
 //console.log(Widget.listDependantDrivers(["driver1","driver2"],"camera_view"));
 //console.log(Widget.listDependantDrivers(["camera_driver","dell_driver"],"camera_view"));
-console.log(Widget.validateWidgetHierarcy("camera_view"));
+//console.log(Widget.validateWidgetHierarcy("camera_view"));
 
 //creating express application
 const app = express();
+app.use(express.static(path.join(__dirname,"public")));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
