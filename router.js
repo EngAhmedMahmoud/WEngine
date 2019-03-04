@@ -1,9 +1,6 @@
 "use strict";
 const express = require("express");
 const http = require("http");
-const fs  = require("fs");
-const zipUnzipPackage = require("adm-zip");
-
 const widgetEngine = require("./WidgetInterface");
 const router = express.Router();
 
@@ -34,8 +31,9 @@ router.post("/download",(req,res)=>{
                 //deleting tmp files
                 let deleteWidget = widgetEngine.deleteFileDirectory(tmpFilePath);
                 //renaming file 
-                const widgetName = widgetEngine.getWidgetConfiguration("widget");
-                let renameWidget = widgetEngine.renameDir(dest,`installed/${widgetName.variable_name}/`);
+                const widgetConfig = widgetEngine.getWidgetConfiguration("widget");
+                const widgetName = widgetConfig.variable_name;
+                let renameWidget = widgetEngine.renameDir(dest,`installed/${widgetName}/`);
                 if(extractWidget.success == 0){
                     res.status(500).json(extractWidget)
                 }
@@ -47,12 +45,15 @@ router.post("/download",(req,res)=>{
                 }else{
                     res.status(200).json({
                         success:1,
-                        msg:`${widgetName.variable_name} donwloaded successfully`
+                        msg:`${widgetName} donwloaded successfully`
                     });
                 }
             });
     });
-    
 });
-
+router.post("/install",(req,res)=>{
+    let widgetName = req.body.widgetName;
+    let install = widgetEngine.install(widgetName);
+    res.send(install);
+})
 module.exports = router;
