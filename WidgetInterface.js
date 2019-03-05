@@ -44,7 +44,7 @@ class Widget{
         }catch(error){
             return {
                 success:0,
-                msg:`${oldName}  To ${newName} Rename Error!!!`,
+                msg:`${oldName}  To ${newName} Rename Error!!! Tow directories have same variable_name`,
                 error:error
             }
         }
@@ -60,34 +60,6 @@ class Widget{
                 success:0,
                 msg:"Downloading error!!",
                 error:error
-            }
-        }
-    }
-    validateWidgetHierarcy(widgetName){
-        let widgetExistance = this.checkWidgetDirectory(widgetName);
-        let widgetDep       = this.checkWidgetDependancy(widgetName);
-        let driverDep       = this.checkDriverDependancy(widgetName);
-        let checkJsFiles    = this.checkJsFiles(widgetName);
-        let checkCssFiles   = this.checkCssFiles(widgetName);
-        let checkEntryPoint = this.checkEntryPoint(widgetName);
-        let errors          = [];
-        (widgetExistance.code && widgetExistance.code != 200) ? errors.push(widgetExistance.errors):{code:200};
-        // (widgetDep.success && widgetDep.success != 1) ? errors.push(widgetDep.msg):{success:1};
-        (driverDep.code && driverDep.code != 200) ? errors.push(driverDep.errors):{code:200};
-        // (checkCssFiles.success && checkCssFiles.success != 1) ? errors.push(checkCssFiles.msg):{success:1};
-        (checkEntryPoint.code && checkCssFiles.code != 200) ? errors.push(checkEntryPoint.errors):{code:200};
-
-       
-        if(errors.length == 0){
-            return {
-                success:1,
-                data:checkEntryPoint.success,
-               len: errors.length
-            }
-        }else{
-            return {
-                success:0,
-                errors:errors
             }
         }
     }
@@ -108,11 +80,11 @@ class Widget{
         const widgetPath = `installed/${widgetName}`;
         if (fs.existsSync(widgetPath)) {
             return {
-                code:200
+                success:1
             }
         }else{
             return {
-                code:404,
+                success:0,
                 errors:`${widgetPath} does not exist`
             }
         }
@@ -130,25 +102,26 @@ class Widget{
                     let driver = dependancyDrivers[i].variable_name;
                     let depDriverPath = `${driverPath}/${driver}.json`;
                     if(!fs.existsSync(depDriverPath)){
-                        driverExist.code=404;
+                        driverExist.success=0;
                         drivers.push(driver);
                         driverExist.errors = drivers;
+                        driverExist.msg = "Driver dependancy files not exist"
                     }
                 }
                 if(driverExist.success===0){
                     return driverExist;
                 }else{
-                    return {code:200};
+                    return {success:1};
                 }
             }else{
                 return {
-                    code:404,
+                    success:0,
                     errors:`${driverPath} Not exist`
                 }
             }
         }else{
             return {
-                code:404,
+                success:0,
                 errors:"No driver dependancies"
             }
         }
@@ -160,7 +133,7 @@ class Widget{
             const dependancyWidgetsCount = dependancyWidgets.length;
             let widgetExist = {};
             let widgets = [];
-            if (fs.existsSync(widgetPath)) {
+            if (fs.existsSync(widgetPath) && dependancyWidgetsCount!=0) {
                 for(let i = 0; i<dependancyWidgetsCount;i++){
                     let widget = dependancyDrivers[i].variable_name;
                     let depWidgetPath = `${widgetPath}/${widget.variable_name}.json`;
@@ -177,6 +150,11 @@ class Widget{
                 }
                
             }
+            if(dependancyWidgetsCount ==0){
+                return {
+                    success:1
+                }
+            }
         }else{
             return {
                 success:0,
@@ -191,14 +169,14 @@ class Widget{
         if (fs.existsSync(entryPath)){
             let entryPintPath = `${entryPath}/${entryPoint}`;
             if(!fs.existsSync(entryPintPath)){
-                entryPointExist.code = 404;
+                entryPointExist.success = 0;
                 entryPointExist.errors =`${entryPath}/${entryPoint} Not Exist`;
 
             }else{
-                entryPointExist.code = 200;
+                entryPointExist.success = 1;
             }
         }else{
-            entryPointExist.code = 404;
+            entryPointExist.success = 0;
             entryPointExist.errors = `${entryPath} Not Exist`;
         }
         return entryPointExist;
@@ -227,12 +205,16 @@ class Widget{
                 }else{
                     return {success:1};
                 }
+            }else{
+                return{
+                    success:0,
+                    errors:cssPath,
+                    msg:`${cssPath} Not Exist`
+                }
             }
         }else{
             return {
-                success:0,
-                errors:cssPath,
-                msg:`${cssPath} Not Exist`
+                success:1,
             }
         }
 
@@ -312,9 +294,21 @@ class Widget{
         widget.dep_widgets = (dep_widgets) ? dep_widgets : [];
         widget.styles = (widgetContent.styles) ? widgetContent.styles : [];
         widget.scripts = (widgetContent.scripts) ? widgetContent.scripts : [];
-        widget.save();
-    }
-    listDependantDrivers(Drivers,widgetName){
+        return  widget.save().then((success)=>{
+                return {
+                    success:1,
+                    msg:`${widgetName} saved successfully in database`
+                }
+                
+            }).catch((error)=>{
+                return {success:0,
+                    msg:`${widgetName}  Not saved in database`,
+                    errors:error.errmsg
+                };
+            });
+        
+}
+    listAndCheckDependantDrivers(Drivers,widgetName){
         const dependancyDrivers = this.getWidgetConfiguration(widgetName).dep_drivers;
         if(dependancyDrivers){
             let drivers =[];
@@ -333,18 +327,117 @@ class Widget{
                    success:0
                }
            }
+        }else{
+            return{
+                success:0
+            }
+        }
+       
+    }
+    listAndCheckDependantWidgets(Widgets,widgetName){
+        const dependancyWidgets = this.getWidgetConfiguration(widgetName).dep_widgets;
+        if(dependancyWidgets){
+            let widgets =[];
+            const widgetCount = dependancyWidgets.length;
+            for(let i=0; i < widgetCount;i++){
+                widgets.push(dependancyWidgets[i].variable_name);
+            }
+            //check drivers 
+           const check = (Widgets.sort().toString() == widgets.sort().toString())?true:false;
+           console.log(check);
+           if(check){
+               return {
+                   success:1,
+               }
+           }else{
+               return{
+                   success:0
+               }
+           }
+        }else{
+            return{
+                success:0
+            }
+        }
+    }
+    listFiles(path){
+        //check path existance 
+        if (fs.existsSync(path)){
+            let folders = fs.readdirSync(path);
+            return{
+                success:1,
+                folders:folders
+            } 
+        }else{
+            return{
+                success:0
+            }
         }
        
     }
 }
 class Installation extends Widget{
-    install(widgetName){
-        let checkHierarcy  = this.validateWidgetHierarcy(widgetName);
-        if(checkHierarcy.success == 0){
-            return checkHierarcy;
+    async install(widgetName){
+        let checkWidgetDirectory  = this.checkWidgetDirectory(widgetName);
+        let checkDriverDependancy = this.checkDriverDependancy(widgetName);
+        let checkWidgetDependancy = this.checkWidgetDependancy(widgetName);
+        let checkEntryPoint       = this.checkEntryPoint(widgetName);
+        let checkCssFiles         = this.checkCssFiles(widgetName);
+        let checkJsFiles          = this.checkJsFiles(widgetName);
+        if(checkWidgetDirectory.success==0){
+            return checkWidgetDirectory;
+        }else if(checkDriverDependancy.success==0){
+            return checkDriverDependancy;
+        }else if(checkWidgetDependancy.success==0){
+            return checkDriverDependancy;
+        }else if(checkEntryPoint.success==0){
+            return checkEntryPoint;
+        }else if(checkCssFiles.success==0){
+            return checkCssFiles;
+        }else if(checkJsFiles.success==0){
+            return checkJsFiles;
         }else{
-            return checkHierarcy;
+            //get widget configuration
+            let widgetSave =   await this.saveWidget(widgetName);
+            if(widgetSave.success==0){
+                return widgetSave;
+            }else{
+                return {
+                    success:1,
+                    msg:"widget saved and installed successfully"
+                }
+            }
         }
+    }
+    async installedWidgets(path){
+       let installed = this.listFiles(path);
+       if(installed.success==0){
+           return installed;
+       }else{
+            let widgets = await WidgetModel.find();
+            let folders = installed.folders;
+            let widgetsCount = widgets.length;
+            let result = [];
+            for(let i = 0; i < widgetsCount;i++){
+                let widgetName = widgets[i].variableName;
+                if(folders.includes(widgetName)){
+                    result.push(widgetName);
+                }
+            }
+            if(result.length !=0){
+                return {
+                    success:1,
+                    installedWidgets:result
+                }
+            }else{
+                return {
+                    success:0,
+                    installedWidgets:result
+                }
+            }
+       }
+       
+       
     }
 }
 var widgetInterface = new Installation();
