@@ -141,6 +141,71 @@ router.get("/installedWidgets",async(req,res)=>{
         res.status(200).json(widgets);
     }
 });
-
-
+router.post("/widgetVisiability",async(req,res)=>{
+    let widgetId = req.body.widgetId;
+    let errors =[];
+    if(!widgetId){
+        errors.push("widgetId is required !!!");
+    }
+    if(errors && errors.length != 0 ){
+        res.status(500).json({
+            success:0,
+            errors:errors
+        });
+    }else{
+        widgetEngine.visibilityControl(widgetId)
+            .then((data)=>{
+                if(data.success ==1){
+                    res.status(200).json({
+                        success:1,
+                        msg:"updated Successfully",
+                        data:data.data
+                    });
+                }else{
+                    res.status(404).json({
+                        success:0,
+                        msg:"This id not exist",
+                    }); 
+                }
+                
+            })
+            .catch((error)=>{
+                res.status(500).json({
+                    success:0,
+                    msg:"widget not updated",
+                    errors:error
+                });
+            });
+    }
+    
+});
+router.post("/widgetLangs",(req,res)=>{
+    let widgetName = req.body.widgetName;
+    let errors =[];
+    if(!widgetName){
+        errors.push("widgetName is required !!!");
+    }
+    if(errors && errors.length != 0 ){
+        res.status(500).json({
+            success:0,
+            errors:errors
+        });
+    }else{
+        let langs = widgetEngine.getWidgetLang(widgetName);
+        if(langs){
+            res.status(200).json({
+                success:1,
+                data:langs
+            });
+        }else{
+            res.status(404).json({
+                success:0,
+                msg:"No data Please Confirm that widgetName exist and installed ",
+            }); 
+        }
+    }
+});
+router.get("/customPage",(req,res)=>{
+    
+});
 module.exports = router;
