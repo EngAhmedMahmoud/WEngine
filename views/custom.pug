@@ -1,0 +1,4 @@
+each widget in widgets
+    div(style=`position:fixed;width:${widget.w}%;height:${widget.h}%;top:${widget.y}%;left:${widget.x}%;z-index:${widget.z};background-color:${widget.color}`)  
+      if widget && widget.data && widget.data.entry_point
+        div !{wid[widget.name]}

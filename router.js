@@ -205,7 +205,31 @@ router.post("/widgetLangs",(req,res)=>{
         }
     }
 });
-router.get("/customPage",(req,res)=>{
-    
+router.get("/customPage/:page",async(req,res)=>{
+    let page       = req.params.page;
+    let customPage = await widgetEngine.customPage(page)
+    console.log(customPage.widgets);
+    res.render('custom', {
+                widgets: customPage.widgets,
+                wid:customPage.wid,
+                styles: customPage.styles,
+                jscode: customPage.scripts
+            });
+    // widgetEngine.customPage(page)
+    // .then((data)=>{
+    //     res.render('custom', {
+    //         widgets: data.widgetData,
+    //         wid:data,wid,
+    //         styles: data.styles,
+    //         jscode: data.scripts
+    //     });
+    // })
+    // .catch((error)=>{
+    //     res.json({
+    //         success:0,
+    //         errors:error
+    //     })
+    // });
+
 });
 module.exports = router;
