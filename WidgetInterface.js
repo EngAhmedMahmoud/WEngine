@@ -1,6 +1,5 @@
 "use strict";
 const fs = require("fs");
-const http = require("http");
 const zipUnzipPackage = require("adm-zip");
 const WidgetModel = require("./Models/widget_config"); 
 
@@ -253,6 +252,44 @@ class Widget{
             return {success:1};  
         }
     }
+    checkLangFiles(widgetName){
+        const langs = this.getWidgetConfiguration(widgetName).langs;
+        const langsPath = `installed/${widgetName}/langs`;
+        const langKeys = Object.keys(langs);
+        if(langs){
+            let langsExist = {};
+            let langs_files = [];
+            if (fs.existsSync(langsPath)) {
+                langKeys.forEach((key)=>{
+                    if(langs[`${key}`] == true){
+                        //check file existance
+                        let langFilePath = `installed/${widgetName}/langs/${key}.locale.json`;
+                        if(!fs.existsSync(langFilePath)){
+                            langsExist.success=0;
+                            langs_files.push(langFilePath);
+                            langsExist.errors = langs_files;
+                            langsExist.msg = "Languages files not exist"
+                        }
+                    }
+                });
+                if(langsExist.success===0){
+                    return langsExist;
+                }else{
+                    return {success:1};
+                }
+            }else{
+                return {
+                    success:0,
+                    errors:`${langsPath} Not exist`
+                }
+            }
+        }else{
+            return {
+                success:0,
+                errors:"No langs in config files"
+            }
+        }
+    }
     saveWidget(widgetName){
         const widgetContent = this.getWidgetConfiguration(widgetName);
         var widget = new WidgetModel();
@@ -307,7 +344,7 @@ class Widget{
                 };
             });
         
-}
+    }
     listAndCheckDependantDrivers(Drivers,widgetName){
         const dependancyDrivers = this.getWidgetConfiguration(widgetName).dep_drivers;
         if(dependancyDrivers){
@@ -375,6 +412,128 @@ class Widget{
         }
        
     }
+    async visibilityControl(widgetId){
+        const visibilityVal = await WidgetModel.findById(widgetId);
+        let visibilityUpdate;
+        if(visibilityVal){
+            if(visibilityVal.visibility == true){
+                visibilityUpdate = await WidgetModel.findOneAndUpdate({_id:widgetId},{visibility:false},{new:true});
+                    return {
+                        success:1,
+                        data:visibilityUpdate.visibility
+                    }
+               }else{
+                visibilityUpdate = await WidgetModel.findOneAndUpdate({_id:widgetId},{visibility:true},{new:true});
+                    return {
+                        success:1,
+                        data:visibilityUpdate.visibility
+                    }
+               }
+        }else{
+            return {
+                success:0
+            }
+        }
+       
+    }
+    async installedWidgets(path){
+        let installed = this.listFiles(path);
+        if(installed.success==0){
+            return installed;
+        }else{
+             let widgets = await WidgetModel.find();
+             let folders = installed.folders;
+             let widgetsCount = widgets.length;
+             let result = [];
+             for(let i = 0; i < widgetsCount;i++){
+                 let widgetName = widgets[i].variableName;
+                 if(folders.includes(widgetName)){
+                     result.push(widgetName);
+                 }
+             }
+             if(result.length !=0){
+                 return {
+                     success:1,
+                     installedWidgets:result
+                 }
+             }else{
+                 return {
+                     success:0,
+                     installedWidgets:result
+                 }
+             }
+        }
+        
+        
+    }
+    readFileContent(path){
+        let filecontents = {};
+        if (fs.existsSync(path)){
+            let contents = fs.readdirSync(path);
+                if(contents && contents.length !=0){
+                    let filesCount = contents.length;
+                    for(let i=0; i< filesCount; i++){
+                        let fileName = contents[i].split(".")[0];
+                        let content = fs.readFileSync(`${path}/${contents[i]}`, "UTF-8");
+                        filecontents[fileName] = JSON.parse(content);
+                    }
+                    return filecontents; 
+                }
+        }else{
+            return null;
+        }
+    }
+    getWidgetLang(widgetName){
+        let langPath = `installed/${widgetName}/langs`;
+        let langs   = {};
+        let lang = this.readFileContent(langPath);
+       
+        if(lang != null){
+            langs[`${widgetName}`] = lang;  
+        }else{
+            langs = null ; 
+        }
+        return langs;
+    }
+    async customPage(pageName){
+        const ramsConfig = JSON.parse(fs.readFileSync(path.join(__dirname,"/../rams.config.json"), 'utf8'));
+        const pagesArray = ramsConfig.pages;
+        let widgetData;
+        var wid = [];
+        var styles = [];
+        var scripts = [];
+        for (let page = 0; page < pagesArray.length; page++) {
+            if (pagesArray[page].name == pageName) {
+                widgetData = pagesArray[page].widgets;
+            }
+        }
+        for (let widget = 0; widget < widgetData.length; widget++) {
+            let dbWidget = await Widget.findOne({ variableName: widgetData[widget].name });
+            widgetData[widget].data = dbWidget;
+            if (dbWidget && dbWidget.styles) {
+                dbWidget.styles.forEach((wstyle) => {
+                    styles.push(wstyle);
+                });
+            }
+            if (dbWidget && dbWidget.scripts) {
+                dbWidget.scripts.forEach((wscript) => {
+                    scripts.push(wscript);
+                });
+            }
+            if (widgetData[widget] && widgetData[widget].data && widgetData[widget].data.entry_point) {
+                wid[widgetData[widget].name] = await pug.renderFile(path.join(__dirname,"/installedWidgets/",widgetData[widget].name,"/views/",widgetData[widget].data.entry_point),
+                );
+            }
+        }
+        let outPut ={
+            wid,
+            styles: styles,
+            jscode: scripts,
+            widgets: widgetData,
+        }
+        return outPut;
+    }
+
 }
 class Installation extends Widget{
     async install(widgetName){
@@ -384,6 +543,7 @@ class Installation extends Widget{
         let checkEntryPoint       = this.checkEntryPoint(widgetName);
         let checkCssFiles         = this.checkCssFiles(widgetName);
         let checkJsFiles          = this.checkJsFiles(widgetName);
+        let checkLangsFiles       = this.checkLangFiles(widgetName)
         if(checkWidgetDirectory.success==0){
             return checkWidgetDirectory;
         }else if(checkDriverDependancy.success==0){
@@ -396,7 +556,11 @@ class Installation extends Widget{
             return checkCssFiles;
         }else if(checkJsFiles.success==0){
             return checkJsFiles;
+        }
+        else if(checkLangsFiles.success == 0){
+            return checkLangsFiles;
         }else{
+            console.log(checkLangsFiles)
             //get widget configuration
             let widgetSave =   await this.saveWidget(widgetName);
             if(widgetSave.success==0){
@@ -408,36 +572,6 @@ class Installation extends Widget{
                 }
             }
         }
-    }
-    async installedWidgets(path){
-       let installed = this.listFiles(path);
-       if(installed.success==0){
-           return installed;
-       }else{
-            let widgets = await WidgetModel.find();
-            let folders = installed.folders;
-            let widgetsCount = widgets.length;
-            let result = [];
-            for(let i = 0; i < widgetsCount;i++){
-                let widgetName = widgets[i].variableName;
-                if(folders.includes(widgetName)){
-                    result.push(widgetName);
-                }
-            }
-            if(result.length !=0){
-                return {
-                    success:1,
-                    installedWidgets:result
-                }
-            }else{
-                return {
-                    success:0,
-                    installedWidgets:result
-                }
-            }
-       }
-       
-       
     }
 }
 var widgetInterface = new Installation();
