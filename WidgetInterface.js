@@ -2,6 +2,8 @@
 const fs = require("fs");
 const zipUnzipPackage = require("adm-zip");
 const WidgetModel = require("./Models/widget_config"); 
+const pug = require("pug");
+const path = require("path");
 
 class Widget{
     ExtractZipFile(source,dest){
@@ -496,7 +498,7 @@ class Widget{
         return langs;
     }
     async customPage(pageName){
-        const ramsConfig = JSON.parse(fs.readFileSync(path.join(__dirname,"/../rams.config.json"), 'utf8'));
+        const ramsConfig = JSON.parse(fs.readFileSync("./rams.config.json", 'utf8'));
         const pagesArray = ramsConfig.pages;
         let widgetData;
         var wid = [];
@@ -508,7 +510,7 @@ class Widget{
             }
         }
         for (let widget = 0; widget < widgetData.length; widget++) {
-            let dbWidget = await Widget.findOne({ variableName: widgetData[widget].name });
+            let dbWidget = await WidgetModel.findOne({ variableName: widgetData[widget].name });
             widgetData[widget].data = dbWidget;
             if (dbWidget && dbWidget.styles) {
                 dbWidget.styles.forEach((wstyle) => {
@@ -521,19 +523,23 @@ class Widget{
                 });
             }
             if (widgetData[widget] && widgetData[widget].data && widgetData[widget].data.entry_point) {
-                wid[widgetData[widget].name] = await pug.renderFile(path.join(__dirname,"/installedWidgets/",widgetData[widget].name,"/views/",widgetData[widget].data.entry_point),
-                );
+                //check if entry point exist or not 
+                let entryPointPath = path.join(__dirname,"/installed/",widgetData[widget].name,"/views/",widgetData[widget].data.entry_point)
+                if(fs.existsSync(entryPointPath)){
+                    wid[widgetData[widget].name] = await pug.renderFile(entryPointPath);
+                }
+               
             }
         }
         let outPut ={
-            wid,
+            wid:wid,
             styles: styles,
             jscode: scripts,
             widgets: widgetData,
         }
+        
         return outPut;
     }
-
 }
 class Installation extends Widget{
     async install(widgetName){
