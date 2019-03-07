@@ -1,17 +1,1 @@
-{
-    "variable_name":"camera_view",
-    "name":"camera view",
-    "desc":"camera view",
-    "version":"1.0.0",
-    "min_foundation":"1.0.0",
-    "entry_point":"main.pug",
-    "langs":{"en_US":true,"ar_EG":true,"es_ES":false,"de_DE":false,"fr_FR":false},
-    "dep_drivers":[{"variable_name":"dell_driver","version":"1.0.0"},{"variable_name":"camera_driver","version":"2.0.0"}],"dep_widgets":[],"size":{"min":{"width":"40","height":"40"},"max":{"width":"50","height":"50"}},"location":{"x":"Left","y":"Bottom"},"styles":[
-    "1.css",
-    "2.css"
-],
-"scripts":[
-    "1.js",
-    "2.js"
-]
-}
+{"variable_name":"camera_view","name":"camera view","desc":"camera view","version":"1.0.0","min_foundation":"1.0.0","entry_point":"main.pug","langs":{"en_US":true,"ar_EG":true,"es_ES":false,"de_DE":false,"fr_FR":false},"dep_drivers":[{"variable_name":"dell_driver","version":"1.0.0"},{"variable_name":"camera_driver","version":"2.0.0"}],"dep_widgets":[],"size":{"min":{"width":"40","height":"40"},"max":{"width":"50","height":"50"}},"location":{"x":"Left","y":"Bottom"}}
