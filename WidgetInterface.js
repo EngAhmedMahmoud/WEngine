@@ -64,6 +64,26 @@ class Widget{
             }
         }
     }
+    removingObjectFromArray(array,object){
+        if(array.length !=0){
+            const index = array.indexOf(object);
+            array.splice(index,1);
+            return array;
+        }
+    }
+    async checkWidgetVisiability(widgetName){
+        let dbWidget = await WidgetModel.findOne({ variableName: widgetName ,visibility:true});
+        if(dbWidget){
+            return {
+                success:1
+            };
+        }else{
+            return {
+                success:0
+            };
+        }
+
+    }
     getWidgetConfiguration(widgetName){
         var configFile = `installed/${widgetName}/config.json`;
         if(fs.existsSync(configFile)){
@@ -498,48 +518,65 @@ class Widget{
         return langs;
     }
     async customPage(pageName){
+        let wid = [];
+        let styles = [];
+        let scripts = [];
         const ramsConfig = JSON.parse(fs.readFileSync("./rams.config.json", 'utf8'));
         const pagesArray = ramsConfig.pages;
         let widgetData;
-        var wid = [];
-        var styles = [];
-        var scripts = [];
-        for (let page = 0; page < pagesArray.length; page++) {
-            if (pagesArray[page].name == pageName) {
+        let widgetdesc=[];
+        const pagesNumber = pagesArray.length;
+        for(let page = 0 ; page < pagesNumber ; page++){
+            if(pagesArray[page].name == pageName){
                 widgetData = pagesArray[page].widgets;
             }
         }
-        for (let widget = 0; widget < widgetData.length; widget++) {
-            let dbWidget = await WidgetModel.findOne({ variableName: widgetData[widget].name });
-            widgetData[widget].data = dbWidget;
-            if (dbWidget && dbWidget.styles) {
-                dbWidget.styles.forEach((wstyle) => {
-                    styles.push(wstyle);
-                });
-            }
-            if (dbWidget && dbWidget.scripts) {
-                dbWidget.scripts.forEach((wscript) => {
-                    scripts.push(wscript);
-                });
-            }
-            if (widgetData[widget] && widgetData[widget].data && widgetData[widget].data.entry_point) {
-                //check if entry point exist or not 
-                let entryPointPath = path.join(__dirname,"/installed/",widgetData[widget].name,"/views/",widgetData[widget].data.entry_point)
-                if(fs.existsSync(entryPointPath)){
-                    wid[widgetData[widget].name] = await pug.renderFile(entryPointPath);
+        if(widgetData){
+            const widgetDataCount = widgetData.length;
+            for(let widget = 0; widget<widgetDataCount;widget++){
+                let widgetName = widgetData[widget].name;
+                //checkVisiability
+                let widgetVisiability = await this.checkWidgetVisiability(widgetName);
+                //checkInstallation
+                let widgetInstalled = this.checkWidgetDirectory(widgetName);
+                if(widgetVisiability.success == 1 && widgetInstalled.success == 1){
+                    widgetdesc.push(widgetData[widget]);
+                    let dbWidget = await WidgetModel.findOne({ variableName: widgetName ,visibility:true});
+                    widgetdesc[widget].data = dbWidget;
+                    
+                    //render entry point
+                    if (widgetdesc[widget] && widgetdesc[widget].data && widgetdesc[widget].data.entry_point) {
+                        //check if entry point exist or not 
+                        let entryPointPath = path.join(__dirname,"/installed/",widgetName,"/views/", widgetdesc[widget].data.entry_point)
+                        if(fs.existsSync(entryPointPath)){
+                            wid[widgetName] = await pug.renderFile(entryPointPath);
+                        }
+                    }
                 }
-               
+            }
+                let outPut ={
+                    wid:wid,
+                    styles: widgetdesc.styles,
+                    jscode: widgetdesc.scripts,
+                    widgets: widgetdesc,
+                }
+                if(widgetdesc.length !=0){
+                    return {
+                        success:1,
+                        outPut
+                        }
+                    }else{
+                        return {
+                            success:0,
+                        }
+                    }
+        }else{
+            return {
+                success:0
             }
         }
-        let outPut ={
-            wid:wid,
-            styles: styles,
-            jscode: scripts,
-            widgets: widgetData,
-        }
-        
-        return outPut;
     }
+   
 }
 class Installation extends Widget{
     async install(widgetName){
