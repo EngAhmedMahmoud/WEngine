@@ -16,6 +16,8 @@ const app = express();
 app.set('view engine', 'pug');
 app.set("views", [path.join(__dirname, "views")]);
 
+//static files for custom pages by widgetName
+//
 app.use(express.static(path.join(__dirname,"public")));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
