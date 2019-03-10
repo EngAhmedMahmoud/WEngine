@@ -1,5 +1,6 @@
 "use strict";
 const fs = require("fs");
+const fs_extra = require("fs-extra");
 const zipUnzipPackage = require("adm-zip");
 const WidgetModel = require("./Models/widget_config"); 
 const pug = require("pug");
@@ -16,25 +17,40 @@ class Widget{
         }catch(error){
             return {
                 success:0,
-                msg:`${source} Extracting Error!!! To ${dest}`
+                msg:`${source} Extracting Error!!! To ${dest}`,
+                error:error
             }
         }
         
     }
-    deleteFileDirectory(source){
+    deleteFile(filePath){
         try{
-            fs.unlinkSync(source);
+            fs_extra.removeSync(path.join(__dirname,filePath));
             return {
                 success:1
             }
         }catch(error){
             return {
                 success:0,
-                msg:`${source} Deleting Error!!!`
-
+                msg:`${filePath} Deleting Error!!!${error}`,
+                error:error
             }
         }
         
+    }
+    deleteDir(dirPath){
+        try{
+            fs_extra.removeSync(path.join(__dirname,dirPath));
+            return {
+                success:1
+            }
+        }catch(error){
+            return {
+                success:0,
+                msg:`${dirPath} Deleting Error!!!${error}`,
+                error:error
+            }
+        }
     }
     renameDir(oldName,newName){
         try{
@@ -79,7 +95,8 @@ class Widget{
             };
         }else{
             return {
-                success:0
+                success:0,
+                msg:"Widget Not Exist"
             };
         }
 
@@ -106,14 +123,13 @@ class Widget{
         }else{
             return {
                 success:0,
-                errors:`${widgetPath} does not exist`
+                msg:`${widgetPath} does not exist`
             }
         }
     }
     checkDriverDependancy(widgetName){
         const dependancyDrivers = this.getWidgetConfiguration(widgetName).dep_drivers;
         const driverPath = `installed/${widgetName}/driver_dep`;
-
         if(dependancyDrivers){
             const dependancyDriversCount = dependancyDrivers.length;
             let driverExist = {};
@@ -129,7 +145,7 @@ class Widget{
                         driverExist.msg = "Driver dependancy files not exist"
                     }
                 }
-                if(driverExist.success===0){
+                if(driverExist.success === 0){
                     return driverExist;
                 }else{
                     return {success:1};
@@ -143,7 +159,7 @@ class Widget{
         }else{
             return {
                 success:0,
-                errors:"No driver dependancies"
+                msg:"Check driver dependancy files"
             }
         }
     }
@@ -156,12 +172,12 @@ class Widget{
             let widgets = [];
             if (fs.existsSync(widgetPath) && dependancyWidgetsCount!=0) {
                 for(let i = 0; i<dependancyWidgetsCount;i++){
-                    let widget = dependancyDrivers[i].variable_name;
+                    let widget = dependancyWidgets[i].variable_name;
                     let depWidgetPath = `${widgetPath}/${widget.variable_name}.json`;
                     if(!fs.existsSync(depWidgetPath)){
                         widgetExist.success=0;
-                        widgets.push(driver);
-                        driverExist.errors = widgets;
+                        widgets.push(widget);
+                        widgetExist.error = widgets;
                     }
                 }
                 if(widgetExist.success === 0){
@@ -179,7 +195,7 @@ class Widget{
         }else{
             return {
                 success:0,
-                msg:"No widget dependancies"
+                msg:"Check widget dependancy files"
             }
         }
     }
@@ -191,14 +207,14 @@ class Widget{
             let entryPintPath = `${entryPath}/${entryPoint}`;
             if(!fs.existsSync(entryPintPath)){
                 entryPointExist.success = 0;
-                entryPointExist.errors =`${entryPath}/${entryPoint} Not Exist`;
+                entryPointExist.msg =`${entryPath}/${entryPoint} Not Exist`;
 
             }else{
                 entryPointExist.success = 1;
             }
         }else{
             entryPointExist.success = 0;
-            entryPointExist.errors = `${entryPath} Not Exist`;
+            entryPointExist.msg = `${entryPath} Not Exist`;
         }
         return entryPointExist;
     }
@@ -217,7 +233,7 @@ class Widget{
                     if(!fs.existsSync(cssFilePath)){
                         cssExist.success=0;
                         css.push(cssFile);
-                        cssExist.errors = css;
+                        cssExist.error = css;
                         cssExist.msg=`css files Not Exist`;
                     }
                 }
@@ -229,7 +245,7 @@ class Widget{
             }else{
                 return{
                     success:0,
-                    errors:cssPath,
+                    error:cssPath,
                     msg:`${cssPath} Not Exist`
                 }
             }
@@ -254,7 +270,7 @@ class Widget{
                     if(!fs.existsSync(jsFilePath)){
                         jsExist.success=0;
                         js.push(jsFile);
-                        jsExist.errors = js;
+                        jsExist.error = js;
                         jsExist.msg="JS files Not Exist";
                     }
                 }
@@ -266,7 +282,7 @@ class Widget{
             }else{
                 return {
                     success:0,
-                    errors:jsPath,
+                    error:jsPath,
                     msg:`${jsPath} Not Exist`
                 }
             }
@@ -277,8 +293,8 @@ class Widget{
     checkLangFiles(widgetName){
         const langs = this.getWidgetConfiguration(widgetName).langs;
         const langsPath = `installed/${widgetName}/langs`;
-        const langKeys = Object.keys(langs);
         if(langs){
+            const langKeys = Object.keys(langs);
             let langsExist = {};
             let langs_files = [];
             if (fs.existsSync(langsPath)) {
@@ -289,7 +305,7 @@ class Widget{
                         if(!fs.existsSync(langFilePath)){
                             langsExist.success=0;
                             langs_files.push(langFilePath);
-                            langsExist.errors = langs_files;
+                            langsExist.error = langs_files;
                             langsExist.msg = "Languages files not exist"
                         }
                     }
@@ -302,13 +318,13 @@ class Widget{
             }else{
                 return {
                     success:0,
-                    errors:`${langsPath} Not exist`
+                    error:`${langsPath} Not exist`
                 }
             }
         }else{
             return {
                 success:0,
-                errors:"No langs in config files"
+                error:"No langs in config files"
             }
         }
     }
@@ -362,7 +378,7 @@ class Widget{
             }).catch((error)=>{
                 return {success:0,
                     msg:`${widgetName}  Not saved in database`,
-                    errors:error.errmsg
+                    error:error.errmsg
                 };
             });
         
@@ -488,7 +504,7 @@ class Widget{
         
         
     }
-    readFileContent(path){
+    readDirFileContent(path){
         let filecontents = {};
         if (fs.existsSync(path)){
             let contents = fs.readdirSync(path);
@@ -505,10 +521,24 @@ class Widget{
             return null;
         }
     }
+    readFileContent(path){
+        if(fs.existsSync(path)){
+            var configurations = JSON.parse(fs.readFileSync(path,"UTF-8"));
+            return {
+                success:1,
+                data:configurations
+            };
+        }else{
+            return {
+                success:0,
+                msg:"File Not Exist"
+            }
+        }
+    }
     getWidgetLang(widgetName){
         let langPath = `installed/${widgetName}/langs`;
         let langs   = {};
-        let lang = this.readFileContent(langPath);
+        let lang = this.readDirFileContent(langPath);
        
         if(lang != null){
             langs[`${widgetName}`] = lang;  
@@ -556,9 +586,7 @@ class Widget{
             }
                 let outPut ={
                     wid:wid,
-                    styles: widgetdesc.styles,
-                    jscode: widgetdesc.scripts,
-                    widgets: widgetdesc,
+                    widgets: widgetdesc
                 }
                 if(widgetdesc.length !=0){
                     return {
@@ -576,7 +604,59 @@ class Widget{
             }
         }
     }
-   
+    versionCompare(widgetName){
+        let oldConfigPath        = `installed/${widgetName}/config.json`;
+        let newConfigPath        = `installed/${widgetName}_upgrade/config.json`;
+        let oldConfig            = this.readFileContent(oldConfigPath);
+        let newConfig            = this.readFileContent(newConfigPath);
+        let errors =[];
+        if(oldConfig.success != 1){
+            errors.push(`installed/${widgetName}/config.json Not Exist`);
+        }
+        if(newConfig.success != 1){
+            errors.push(`installed/${widgetName}_upgrade/config.json Not Exist`);
+        }
+        if(foundationConfig.success != 1){
+            errors.push(`rams.config.json Not Exist`);
+        }
+        if(errors.length != 0){
+            return {
+                success:0
+            }
+        }else{
+            //version comparing
+            let splittedOldVersion       = oldConfig.version.split(".");
+            let splittednewVersion       = newConfig.version.split(".");
+            let oldVersionMajor          = splittedOldVersion[0];
+            let newVersionMajor          = splittednewVersion[0];
+            if(oldVersionMajor == newVersionMajor){
+                return {
+                    success:1
+                }
+            }else{
+                return {
+                    success:0,
+                    msg:"Version not compatible"
+                }
+            }        
+        }
+
+    }
+    deleteDBWidget(widgetName){
+        WidgetModel.delete({variableName:widgetName})
+        .then((widget)=>{
+           return {
+               success:1,
+               data:widget
+           }
+        })
+        .catch((err)=>{
+            return {
+                success:0,
+                error:err
+            }
+        })
+    }
 }
 class Installation extends Widget{
     async install(widgetName){
@@ -603,7 +683,6 @@ class Installation extends Widget{
         else if(checkLangsFiles.success == 0){
             return checkLangsFiles;
         }else{
-            console.log(checkLangsFiles)
             //get widget configuration
             let widgetSave =   await this.saveWidget(widgetName);
             if(widgetSave.success==0){
@@ -616,6 +695,10 @@ class Installation extends Widget{
             }
         }
     }
+    async upgrade(widgetName){
+
+    }
+
 }
 var widgetInterface = new Installation();
 module.exports = widgetInterface;
