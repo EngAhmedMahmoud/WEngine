@@ -71,6 +71,26 @@ router.post("/install",(req,res)=>{
     }
     
 });
+router.post("/delete",async(req,res)=>{
+    let widgetName = req.body.widgetName;
+    let errors =[];
+    if(!widgetName){
+        errors.push("widgetName is required !!!");
+    }
+    if(errors && errors.length != 0 ){
+        res.status(500).json({
+            success:0,
+            errors:errors
+        });
+    }else{
+        let widgetDelete = await widgetEngine.deleteWidget(widgetName);
+        if(widgetDelete.success==1){
+            res.status(200).json(widgetDelete);
+        }else{
+            res.status(500).json(widgetDelete);
+        }
+    }
+})
 router.post("/depDrivers",(req,res)=>{
     let drivers    = req.body.drivers.split(",");
     let widgetName = req.body.widgetName;
@@ -214,8 +234,8 @@ router.get("/customPage/:page",async(req,res)=>{
     }
         
 });
-/*
-router.get("/upgrade",(req,res)=>{
+
+router.post("/upgrade",(req,res)=>{
     let url = req.body.url;
     let tmpFilePath = "tmp/widget.zip";
     let dest  = "installed/widget";
@@ -234,12 +254,12 @@ router.get("/upgrade",(req,res)=>{
                     msg:"Zip File Not Exist"
                 });
             }else{
-                response.on("data",(data)=>{
+                response.on("data",async (data)=>{
                     let downloadFile  = widgetEngine.downloadFile(tmpFilePath,data);
                     //unziping files 
                     let extractWidget = widgetEngine.ExtractZipFile(tmpFilePath,dest);
                     //deleting tmp files
-                    let deleteWidget = widgetEngine.deleteFileDirectory(tmpFilePath);
+                    let deleteWidget = widgetEngine.deleteDir(tmpFilePath);
                     //renaming file 
                     const widgetConfig = widgetEngine.getWidgetConfiguration("widget");
                     const widgetName = widgetConfig.variable_name;
@@ -255,29 +275,29 @@ router.get("/upgrade",(req,res)=>{
                         res.status(500).json(deleteWidget)
                     }
                     else if( renameWidget.success == 0 ){
-                            widgetEngine.deleteFileDirectory(dest);
+                            widgetEngine.deleteDir(dest);
                             res.status(500).json(renameWidget)
                     }else{
+                        
                         //here installing the new widget
-                        let install = await widgetEngine.install(widgetName);
-                        if(install.success==0){
-                            res.status(404).json(install); 
+                        let upgrade = await widgetEngine.upgrade(widgetName);
+                        if(upgrade.success==0){
+                            res.status(404).json(upgrade); 
                         }else{
                             let widgetDelete = await widgetEngine.deleteDBWidget(widgetName);
                             if(widgetDelete.success==1){
-                                res.status(200).json(install); 
+                                res.status(200).json(upgrade); 
                             }else{
                                 res.status(500).json({
                                     success:0,
                                 }); 
                             }
                         }
-                            
                         }
                 });
             }
     });
     }
 })
-*/
+
 module.exports = router;
