@@ -537,7 +537,7 @@ class Widget{
         }else{
             return {
                 success:0,
-                msg:"File Not Exist"
+                msg:`${path} not exist`
             }
         }
     }
@@ -720,6 +720,34 @@ class Widget{
             }
         }
     }
+    backUp(widgetName){
+        let zip = new zipUnzipPackage();
+        let dirPath = `installed/${widgetName}`;
+        //check widgetDir
+        let check = this.checkWidgetDirectory(widgetName);
+        if(check.success == 1){
+            //compressing files
+            try{
+                zip.addLocalFolder(dirPath);
+                zip.toBuffer();
+                zip.writeZip(path.join(__dirname,`backup/${widgetName}_${Date()}.zip`));
+                return{
+                    success:1
+                }
+            }catch(error){
+                return{
+                    success:0,
+                    msg:"Error When backup data",
+                    error:error
+                }
+            }
+        }else{
+             return {
+                 success:0,
+                 msg:`${widgetName} does not exist`
+             }
+        }
+    }
 
 }
 class Installation extends Widget{
@@ -783,10 +811,91 @@ class Installation extends Widget{
         await this.deleteDBWidget(widgetName);
     }
     async deleteWidget(widgetName){
+        let installedWidgetPath = `installed/${widgetName}`;
         //backup widget first
+        let backup = this.backUp(widgetName);
+        if(backup.success==0){
+            return backup;
+        }else{
+            await this.uninstall(widgetName,installedWidgetPath);
+            return {
+                success:1,
+                msg:`${widgetName} deleted successfully`
+            }
+        }
     }
     async upgrade(widgetName){
+        //compare version between new widget and old widget
+        let oldConfigPath        = `installed/${widgetName}/config.json`;
+        let newConfigPath        = `installed/${widgetName}_upgrade/config.json`;
+        let oldConfig            = this.readFileContent(oldConfigPath);
+        let newConfig            = this.readFileContent(newConfigPath);
+        let errors =[];
+        if(oldConfig.success != 1){
+            errors.push(`installed/${widgetName}/config.json Not Exist`);
+        }
+        if(newConfig.success != 1){
+            errors.push(`installed/${widgetName}_upgrade/config.json Not Exist`);
+        }
+        if(errors.length != 0){
+            return {
+                success:0,
+                error:errors
+            }
+        }else{
+            //comparing two versions
+            let versionComparison = this.versionComapre(oldConfig.version,newConfig.version);
+            if(versionComparison == "upgrade"){
+                //delete old widget
+                let widgetDelete = await this.deleteWidget(widgetName);
+                if(widgetDelete.success==0){
+                    return widgetDelete;
+                }else{
+                    //rename
+                    const oldWidgetPath = `installed/${widgetName}_upgrade/`;
+                    const newUpgradedWidget = `installed/${widgetName}/`;
+                    let renameWidget = this.renameDir(oldWidgetPath,newUpgradedWidget);
+                    if(renameWidget.success==0){
+                        return renameWidget
+                    }else{
+                        //install
+                        let install = await this.install(newUpgradedWidget);
+                        return install;
+                    }
+                    
+                }
+                
+                
+               
+            }else if(versionComparison == "equal"){
+                //no upgrade
+                //delete upgraded folder
+                let widgetDelete = await this.deleteWidget(`${widgetName}_upgrade`);
+                if(widgetDelete.success==0){
+                    return widgetDelete;
+                }else{
+                    return {
+                        success:0,
+                        msg: "two widget versions are equal"
+                    }
+                }
+
+            }else{
+                //no upgrade
+                //delete upgraded folder
+                let widgetDelete = await this.deleteWidget(`${widgetName}_upgrade`);
+                if(widgetDelete.success==0){
+                    return widgetDelete;
+                }else{
+                    return {
+                        success:0,
+                        msg: "New widget version are less than old widget"
+                    }
+            }
+        }
+        
     }
+}
 }
 var widgetInterface = new Installation();
 module.exports = widgetInterface;
