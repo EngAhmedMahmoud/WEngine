@@ -5,6 +5,7 @@ const zipUnzipPackage = require("adm-zip");
 const WidgetModel = require("./Models/widget_config"); 
 const pug = require("pug");
 const path = require("path");
+const getData = require("./getData");
 
 class Widget{
     ExtractZipFile(source,dest){
@@ -40,7 +41,7 @@ class Widget{
     }
     deleteDir(dirPath){
         try{
-            fs_extra.removeSync(path.join(__dirname,dirPath));
+            fs_extra.removeSync(dirPath);
             return {
                 success:1
             }
@@ -61,7 +62,7 @@ class Widget{
         }catch(error){
             return {
                 success:0,
-                msg:`${oldName}  To ${newName} Rename Error!!! Tow directories have same variable_name`,
+                msg:`The same widget already exist`,
                 error:error
             }
         }
@@ -173,7 +174,7 @@ class Widget{
             if (fs.existsSync(widgetPath) && dependancyWidgetsCount!=0) {
                 for(let i = 0; i<dependancyWidgetsCount;i++){
                     let widget = dependancyWidgets[i].variable_name;
-                    let depWidgetPath = `${widgetPath}/${widget.variable_name}.json`;
+                    let depWidgetPath = `${widgetPath}/${widget}.js`;
                     if(!fs.existsSync(depWidgetPath)){
                         widgetExist.success=0;
                         widgets.push(widget);
@@ -186,8 +187,7 @@ class Widget{
                     return {success:1};
                 }
                
-            }
-            if(dependancyWidgetsCount ==0){
+            }if(dependancyWidgetsCount ==0){
                 return {
                     success:1
                 }
@@ -376,12 +376,12 @@ class Widget{
                 }
                 
             }).catch((error)=>{
-                return {success:0,
+                return {
+                    success:0,
                     msg:`${widgetName}  Not saved in database`,
                     error:error.errmsg
                 };
             });
-        
     }
     listAndCheckDependantDrivers(Drivers,widgetName){
         const dependancyDrivers = this.getWidgetConfiguration(widgetName).dep_drivers;
@@ -398,13 +398,16 @@ class Widget{
                    success:1,
                }
            }else{
+            let difference = drivers.filter(x => !Drivers.includes(x));
                return{
-                   success:0
+                   success:0,
+                   msg:`please check that ${drivers} is installed`
                }
            }
         }else{
             return{
-                success:0
+                success:0,
+                msg:"No driver dependancies"
             }
         }
        
@@ -419,19 +422,22 @@ class Widget{
             }
             //check drivers 
            const check = (Widgets.sort().toString() == widgets.sort().toString())?true:false;
-           console.log(check);
            if(check){
                return {
                    success:1,
                }
            }else{
+            let difference = widgets.filter(x => !Widgets.includes(x));
+
                return{
-                   success:0
+                   success:0,
+                   msg:`please check that ${difference} is installed`
                }
            }
         }else{
             return{
-                success:0
+                success:0,
+                msg:`No widget dependancies`
             }
         }
     }
@@ -604,7 +610,7 @@ class Widget{
             }
         }
     }
-    versionCompare(widgetName){
+    VersionCompare(widgetName){
         let oldConfigPath        = `installed/${widgetName}/config.json`;
         let newConfigPath        = `installed/${widgetName}_upgrade/config.json`;
         let oldConfig            = this.readFileContent(oldConfigPath);
@@ -625,67 +631,144 @@ class Widget{
             }
         }else{
             //version comparing
-            let splittedOldVersion       = oldConfig.version.split(".");
-            let splittednewVersion       = newConfig.version.split(".");
-            let oldVersionMajor          = splittedOldVersion[0];
-            let newVersionMajor          = splittednewVersion[0];
-            if(oldVersionMajor == newVersionMajor){
-                return {
-                    success:1
-                }
-            }else{
-                return {
-                    success:0,
-                    msg:"Version not compatible"
-                }
-            }        
-        }
+            let splittedOldVersion      = oldConfig.version.split(".");
+            let splittednewVersion      = newConfig.version.split(".");
+            let oldVersionMajor         = splittedOldVersion[0];
+            let newVersionMajor         = splittednewVersion[0];
 
+            let oldVersionMainor        = splittedOldVersion[1];
+            let newVersionMainor        = splittednewVersion[1];
+
+            let oldVersionPatch         = splittedOldVersion[2];
+            let newVersionPatch         = splittednewVersion[2];
+            let upgrade = false;
+            if(oldVersionMajor < newVersionMajor){
+                upgrade = true;
+            }
+            //check equlaity
+            if(oldVersionMajor == newVersionMajor){
+                //check minor
+                if(oldVersionMainor < newVersionMainor){
+                    upgrade = true;
+                }
+                //check equilty
+                if(oldVersionMainor == newVersionMainor){
+                    //check patch
+                    if(oldVersionPatch < newVersionPatch){
+                        upgrade = true;
+                    }
+                    if(oldVersionPatch == newVersionPatch){
+                        upgrade = false;
+                    }
+                }
+            }
+        }
     }
-    deleteDBWidget(widgetName){
-        WidgetModel.delete({variableName:widgetName})
-        .then((widget)=>{
-           return {
-               success:1,
-               data:widget
-           }
-        })
-        .catch((err)=>{
+    versionComapre(oldVersion,newVersion){
+        //version comparing
+        let splittedOldVersion      = oldVersion.split(".");
+        let splittednewVersion      = newVersion.split(".");
+        let oldVersionMajor         = splittedOldVersion[0];
+        let newVersionMajor         = splittednewVersion[0];
+
+        let oldVersionMainor        = splittedOldVersion[1];
+        let newVersionMainor        = splittednewVersion[1];
+
+        let oldVersionPatch         = splittedOldVersion[2];
+        let newVersionPatch         = splittednewVersion[2];
+        let upgrade = "downgrade";
+        if(oldVersionMajor < newVersionMajor){
+            upgrade = "upgrade";
+        }
+        //check equlaity
+        if(oldVersionMajor == newVersionMajor){
+            //check minor
+            if(oldVersionMainor < newVersionMainor){
+                upgrade = "upgrade";
+            }
+            //check equilty
+            if(oldVersionMainor == newVersionMainor){
+                //check patch
+                if(oldVersionPatch < newVersionPatch){
+                    upgrade = "upgrade";
+                }
+                if(oldVersionPatch == newVersionPatch){
+                    upgrade = "equal";
+                }
+            }
+        }
+        return upgrade;
+    }
+    async deleteDBWidget(widgetName){
+        await  WidgetModel.deleteOne({variableName:widgetName});
+    }
+    widgetFoundationVersion(widgetName){
+        let configPath = `installed/${widgetName}/config.json`;
+        let widgetConfig = this.readFileContent(configPath);
+        let widgetMinFoundationVersion = widgetConfig.data.min_foundation;
+        let foundationVersion = getData.getFoundationVersion();
+        //comparing version
+        let versionCompare = this.versionComapre(widgetMinFoundationVersion,foundationVersion);
+        if(versionCompare == "equal" || versionCompare == "upgrade"){
+            return {
+                success:1
+            }
+        }else{
             return {
                 success:0,
-                error:err
+                msg:"Widget version not compatible with foundation Please Upgrade Widget"
             }
-        })
+        }
     }
+
 }
 class Installation extends Widget{
     async install(widgetName){
+        //check files and dirs
         let checkWidgetDirectory  = this.checkWidgetDirectory(widgetName);
         let checkDriverDependancy = this.checkDriverDependancy(widgetName);
         let checkWidgetDependancy = this.checkWidgetDependancy(widgetName);
         let checkEntryPoint       = this.checkEntryPoint(widgetName);
         let checkCssFiles         = this.checkCssFiles(widgetName);
         let checkJsFiles          = this.checkJsFiles(widgetName);
-        let checkLangsFiles       = this.checkLangFiles(widgetName)
+        let checkLangsFiles       = this.checkLangFiles(widgetName);
+        //
+
+        //check dependancies
+        let depDrivers = getData.installedDrivers();
+        let depWidgets = getData.installedWidgets();
+        let driverDep = this.listAndCheckDependantDrivers(depDrivers,widgetName);
+        let widgetDep = this.listAndCheckDependantWidgets(depWidgets,widgetName);
+        //
+
+        //check version foundation with widget
+        let widgetVersion = this.widgetFoundationVersion(widgetName);
+        //
         if(checkWidgetDirectory.success==0){
             return checkWidgetDirectory;
         }else if(checkDriverDependancy.success==0){
             return checkDriverDependancy;
-        }else if(checkWidgetDependancy.success==0){
-            return checkDriverDependancy;
+        }else if(checkWidgetDependancy.success == 0){
+            return checkWidgetDependancy;
         }else if(checkEntryPoint.success==0){
             return checkEntryPoint;
         }else if(checkCssFiles.success==0){
             return checkCssFiles;
         }else if(checkJsFiles.success==0){
             return checkJsFiles;
-        }
-        else if(checkLangsFiles.success == 0){
+        }else if(checkLangsFiles.success == 0){
             return checkLangsFiles;
+        }else if(driverDep.success == 0){
+            return driverDep;
+        }else if(widgetDep.success == 0){
+            return widgetDep;
+        }else if(widgetVersion.success ==0){
+            return widgetVersion;
         }else{
+            
             //get widget configuration
             let widgetSave =   await this.saveWidget(widgetName);
-            if(widgetSave.success==0){
+            if(widgetSave.success == 0){
                 return widgetSave;
             }else{
                 return {
@@ -695,10 +778,15 @@ class Installation extends Widget{
             }
         }
     }
-    async upgrade(widgetName){
-
+    async uninstall(widgetName,installedWidgetPath){
+        this.deleteDir(installedWidgetPath);
+        await this.deleteDBWidget(widgetName);
     }
-
+    async deleteWidget(widgetName){
+        //backup widget first
+    }
+    async upgrade(widgetName){
+    }
 }
 var widgetInterface = new Installation();
 module.exports = widgetInterface;
