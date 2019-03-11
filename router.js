@@ -50,18 +50,20 @@ router.post("/install",(req,res)=>{
                             widgetEngine.deleteDir(dest);
                             res.status(500).json(renameWidget)
                     }else{
-                            //installing and saving widget
+                        //installing and saving widget
                         let install = await widgetEngine.install(widgetName);
-                        if(install.success==0){
-                            //widgetEngine.deleteDir(installedWidgetPath);
-                            res.status(404).json(install); 
+                        if(install.success == 0){
+                            await widgetEngine.uninstall(widgetName,installedWidgetPath);
+                            res.status(404).json(install);
+
                         }else{
+
                             res.status(200).json({
                                 success:1,
                                 msg:`${widgetName} donwloaded and installed successfully`
                             }); 
-                        }
-                        
+
+                        } 
                         }
                 });
             }
@@ -69,7 +71,6 @@ router.post("/install",(req,res)=>{
     }
     
 });
-
 router.post("/depDrivers",(req,res)=>{
     let drivers    = req.body.drivers.split(",");
     let widgetName = req.body.widgetName;
