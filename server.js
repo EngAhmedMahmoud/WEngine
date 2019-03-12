@@ -17,9 +17,6 @@ const app = express();
 app.set('view engine', 'pug');
 app.set("views", [path.join(__dirname, "views")]);
 
-//WidgetEngine
-// console.log(WidgetEngine.versionComapre('1.1.1','2.0.0'));
-//WidgetEngine.widgetFoundationVersion('widgey_data');
 //static files for custom pages by widgetName
 //
 app.use(express.static(path.join(__dirname,"public")));
