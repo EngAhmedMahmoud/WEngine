@@ -285,7 +285,6 @@ router.post("/upgrade",(req,res)=>{
                         if(upgrade.success==0){
                             res.status(404).json(upgrade); 
                         }else{
-                            await widgetEngine.deleteDBWidget(widgetName);
                             res.status(200).json(upgrade); 
                         }
                     }
