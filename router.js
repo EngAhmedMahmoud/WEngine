@@ -265,35 +265,30 @@ router.post("/upgrade",(req,res)=>{
                     const widgetName = widgetConfig.variable_name;
                     const installedWidgetPath = `installed/${widgetName}_upgrade/`;
                     let renameWidget = widgetEngine.renameDir(dest,installedWidgetPath);
+
                     if(downloadFile.success == 0){
+                        widgetEngine.deleteDir(installedWidgetPath);
                         res.status(500).json(downloadFile);
                     }else if(extractWidget.success == 0){
+                        widgetEngine.deleteDir(installedWidgetPath);
                         res.status(500).json(extractWidget)
-                    }
-                    else if(deleteWidget.success == 0){
-                        //deleting new widget
+                    }else if(deleteWidget.success == 0){
+                        widgetEngine.deleteDir(installedWidgetPath);
                         res.status(500).json(deleteWidget)
                     }
-                    else if( renameWidget.success == 0 ){
-                            widgetEngine.deleteDir(dest);
-                            res.status(500).json(renameWidget)
+                    else if(renameWidget.success == 0){
+                        widgetEngine.deleteDir(dest);
+                        res.status(500).json(renameWidget)
                     }else{
-                        
                         //here installing the new widget
                         let upgrade = await widgetEngine.upgrade(widgetName);
                         if(upgrade.success==0){
                             res.status(404).json(upgrade); 
                         }else{
-                            let widgetDelete = await widgetEngine.deleteDBWidget(widgetName);
-                            if(widgetDelete.success==1){
-                                res.status(200).json(upgrade); 
-                            }else{
-                                res.status(500).json({
-                                    success:0,
-                                }); 
-                            }
+                            await widgetEngine.deleteDBWidget(widgetName);
+                            res.status(200).json(upgrade); 
                         }
-                        }
+                    }
                 });
             }
     });
