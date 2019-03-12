@@ -705,6 +705,7 @@ class Widget{
     widgetFoundationVersion(widgetName){
         let configPath = `installed/${widgetName}/config.json`;
         let widgetConfig = this.readFileContent(configPath);
+        console.log(widgetConfig);
         let widgetMinFoundationVersion = widgetConfig.data.min_foundation;
         let foundationVersion = getData.getFoundationVersion();
         //comparing version
@@ -716,7 +717,7 @@ class Widget{
         }else{
             return {
                 success:0,
-                msg:"Widget version not compatible with foundation Please Upgrade Widget"
+                msg:`Widget Min-foundation version ${widgetMinFoundationVersion} not compatible with foundation Version ${foundationVersion} Please Upgrade Foundation`
             }
         }
     }
@@ -825,12 +826,15 @@ class Installation extends Widget{
         }
     }
     async upgrade(widgetName){
-        //compare version between new widget and old widget
-        let oldConfigPath        = `installed/${widgetName}/config.json`;
-        let newConfigPath        = `installed/${widgetName}_upgrade/config.json`;
-        let oldConfig            = this.readFileContent(oldConfigPath);
-        let newConfig            = this.readFileContent(newConfigPath);
-        let errors =[];
+        //Read configuration for both widgets
+        let oldConfigPath  = `installed/${widgetName}/config.json`;
+        let newConfigPath  = `installed/${widgetName}_upgrade/config.json`;
+        let oldConfig      = this.readFileContent(oldConfigPath);
+        let newConfig      = this.readFileContent(newConfigPath);
+        let errors         = [];
+        const oldWidgetPath = `installed/${widgetName}_upgrade/`;
+        const newUpgradedWidget = `installed/${widgetName}/`;
+
         if(oldConfig.success != 1){
             errors.push(`installed/${widgetName}/config.json Not Exist`);
         }
@@ -838,13 +842,14 @@ class Installation extends Widget{
             errors.push(`installed/${widgetName}_upgrade/config.json Not Exist`);
         }
         if(errors.length != 0){
+            this.deleteDir(oldWidgetPath);
             return {
                 success:0,
                 error:errors
             }
         }else{
             //comparing two versions
-            let versionComparison = this.versionComapre(oldConfig.version,newConfig.version);
+            let versionComparison = this.versionComapre(oldConfig.data.version,newConfig.data.version);
             if(versionComparison == "upgrade"){
                 //delete old widget
                 let widgetDelete = await this.deleteWidget(widgetName);
@@ -852,25 +857,20 @@ class Installation extends Widget{
                     return widgetDelete;
                 }else{
                     //rename
-                    const oldWidgetPath = `installed/${widgetName}_upgrade/`;
-                    const newUpgradedWidget = `installed/${widgetName}/`;
                     let renameWidget = this.renameDir(oldWidgetPath,newUpgradedWidget);
                     if(renameWidget.success==0){
                         return renameWidget
                     }else{
                         //install
-                        let install = await this.install(newUpgradedWidget);
+                        let install = await this.install(widgetName);
                         return install;
                     }
                     
-                }
-                
-                
-               
+                }   
             }else if(versionComparison == "equal"){
                 //no upgrade
                 //delete upgraded folder
-                let widgetDelete = await this.deleteWidget(`${widgetName}_upgrade`);
+                let widgetDelete =  this.deleteDir(oldWidgetPath);
                 if(widgetDelete.success==0){
                     return widgetDelete;
                 }else{
@@ -883,7 +883,7 @@ class Installation extends Widget{
             }else{
                 //no upgrade
                 //delete upgraded folder
-                let widgetDelete = await this.deleteWidget(`${widgetName}_upgrade`);
+                let widgetDelete =  this.deleteDir(oldWidgetPath);
                 if(widgetDelete.success==0){
                     return widgetDelete;
                 }else{
@@ -895,7 +895,8 @@ class Installation extends Widget{
         }
         
     }
-}
+    }
+    
 }
 var widgetInterface = new Installation();
 module.exports = widgetInterface;
