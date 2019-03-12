@@ -794,7 +794,6 @@ class Installation extends Widget{
         }else if(widgetVersion.success ==0){
             return widgetVersion;
         }else{
-            
             //get widget configuration
             let widgetSave =   await this.saveWidget(widgetName);
             if(widgetSave.success == 0){
@@ -815,7 +814,7 @@ class Installation extends Widget{
         let installedWidgetPath = `installed/${widgetName}`;
         //backup widget first
         let backup = this.backUp(widgetName);
-        if(backup.success==0){
+        if(backup.success == 0){
             return backup;
         }else{
             await this.uninstall(widgetName,installedWidgetPath);
@@ -896,7 +895,7 @@ class Installation extends Widget{
         
     }
     }
-    
+
 }
 var widgetInterface = new Installation();
 module.exports = widgetInterface;
