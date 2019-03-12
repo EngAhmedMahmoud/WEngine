@@ -57,7 +57,8 @@ router.post("/install",(req,res)=>{
                             res.status(404).json(install);
 
                         }else{
-
+                            //serving installed widget static files during run time
+                            router.use(`/${widgetName}`,express.static(path.join(__dirname,'installed',widgetName,'assets')));
                             res.status(200).json({
                                 success:1,
                                 msg:`${widgetName} donwloaded and installed successfully`
