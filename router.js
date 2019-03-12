@@ -223,12 +223,9 @@ router.get("/customPage/:page",async(req,res)=>{
     let page       = req.params.page;
     let customPage = await widgetEngine.customPage(page);
     if( customPage.success == 1 ){
-        let widgets = customPage.outPut.widgets;
-        let wid = customPage.outPut.wid;
-       
+        let widgets = customPage.widgets;
         res.render('custom', {
             widgets: widgets,
-            wid:wid
         });
     }else{
         res.redirect("/");
