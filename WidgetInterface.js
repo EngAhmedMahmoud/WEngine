@@ -517,19 +517,18 @@ class Widget{
     }
     checkWidgetLang(widgetName,langCode){
         let widgetConfig = this.getWidgetConfiguration(widgetName);
-        if(widgetConfig && widgetConfig.langs && widgetConfig.langs.langCode == true){
+        if(widgetConfig && widgetConfig.langs && widgetConfig.langs[langCode] == true){            
             return langCode;
         }else{
             return "en_US";
         }
 
     }
-    async customPage(pageName){
-        const pagesArray = getData.getPages();
+    async customPage(){
+        const widgetsArray = getData.getWidgets();
         const language = getData.getLocale();
-        const pages = pagesArray.filter(function(x) { return x.name == pageName });
-        if(pages && pages.length!=0){
-            let widgets = pages[0].widgets;
+        if(widgetsArray && widgetsArray.length!=0){
+            let widgets = widgetsArray;
             let widgetsCount = widgets.length;
             let processedWidget = [];
             for(let wid =0; wid<widgetsCount;wid++){
@@ -544,13 +543,12 @@ class Widget{
                         let entryPointPath = path.join(__dirname,"/installed/",widgetName,"/views/", widgets[wid].data.entry_point)
                         if(fs.existsSync(entryPointPath)){
                                 //check widget language
-                                let locale = this.checkWidgetLang(language);
+                                let locale = this.checkWidgetLang(widgetName,language);
                                 if(this.getWidgetLang(widgetName)!=null){
                                     widgets[wid].locale = this.getWidgetLang(widgetName)[widgetName][locale];
                                 }else{
                                     widgets[wid].locale='';
                                 }
-                                console.log(widgets[wid].locale);
                                 widgets[wid][widgetName] = await pug.renderFile(entryPointPath,{
                                 locale:widgets[wid].locale
                             });
@@ -573,7 +571,6 @@ class Widget{
                     processedWidget.push(widgets[wid]);
                 }
             }
-            console.log(processedWidget);
             return {
                 success:1,
                 widgets:processedWidget
