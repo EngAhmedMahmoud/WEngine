@@ -219,18 +219,18 @@ router.post("/widgetLangs",(req,res)=>{
         }
     }
 });
-router.get("/customPage/:page",async(req,res)=>{
-    let page       = req.params.page;
-    let customPage = await widgetEngine.customPage(page);
+router.get("/customPage",async(req,res)=>{
+    
+    let customPage = await widgetEngine.customPage();
     if( customPage.success == 1 ){
         let widgets = customPage.widgets;
         res.render('custom', {
             widgets: widgets,
         });
+        
     }else{
         res.redirect("/");
-    }
-        
+    }     
 });
 router.post("/upgrade",(req,res)=>{
     let url = req.body.url;
