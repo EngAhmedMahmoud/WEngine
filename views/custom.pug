@@ -1,6 +1,15 @@
-
+each widget in widgets
+    if widget && widget.styles
+      each style in widget.styles
+        link(rel='stylesheet', href=`${widget.name}/css/${style}`)
 
 each widget in widgets
       div(style=`position:fixed;width:${widget.w}%;height:${widget.h}%;top:${widget.y}%;left:${widget.x}%;z-index:${widget.z};background-color:${widget.color}`)  
         if widget && widget.data && widget.data.entry_point
           div !{widget[widget.name]}
+
+each widget in widgets
+    if widget && widget.js
+      each js in widget.js
+        script(src=`${widget.name}/js/${js}`)
+
