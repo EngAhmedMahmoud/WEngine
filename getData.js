@@ -28,8 +28,8 @@ let getData ={
                     },
                     {
                         name: "camera_view",
-                        x: 10,
-                        y: 10,
+                        x: 0,
+                        y: 0,
                         z: 2,
                         w: "150",
                         h: "150",
