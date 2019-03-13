@@ -171,27 +171,30 @@ class Widget{
             const dependancyWidgetsCount = dependancyWidgets.length;
             let widgetExist = {};
             let widgets = [];
-            if (fs.existsSync(widgetPath) && dependancyWidgetsCount!=0) {
-                for(let i = 0; i<dependancyWidgetsCount;i++){
-                    let widget = dependancyWidgets[i].variable_name;
-                    let depWidgetPath = `${widgetPath}/${widget}.js`;
-                    if(!fs.existsSync(depWidgetPath)){
-                        widgetExist.success=0;
-                        widgets.push(widget);
-                        widgetExist.error = widgets;
+            if (fs.existsSync(widgetPath)) {
+                if(dependancyWidgetsCount!=0){
+                    for(let i = 0; i<dependancyWidgetsCount;i++){
+                        let widget = dependancyWidgets[i].variable_name;
+                        let depWidgetPath = `${widgetPath}/${widget}.js`;
+                        if(!fs.existsSync(depWidgetPath)){
+                            widgetExist.success=0;
+                            widgets.push(widget);
+                            widgetExist.error = widgets;
+                            widgetExist.msg="Widgets not Exist";
+                        }
                     }
-                }
-                if(widgetExist.success === 0){
-                    return widgetExist;
+                    if(widgetExist.success === 0){
+                        return widgetExist;
+                    }else{
+                        return {success:1};
+                    }
                 }else{
                     return {success:1};
-                }
-               
-            }if(dependancyWidgetsCount ==0){
-                return {
-                    success:1
-                }
+                }  
+            }else{
+                return {success:0,msg:`${widgetPath} Not Exist`}; 
             }
+            
         }else{
             return {
                 success:0,
@@ -218,84 +221,36 @@ class Widget{
         }
         return entryPointExist;
     }
-    checkCssFiles(widgetName){
-        const styles        = this.getWidgetConfiguration(widgetName).styles;
-        const cssPath       = `installed/${widgetName}/assets/css`;
-        
-        if(styles){
-            const cssFilesCount = styles.length;
-            let cssExist = {};
-            let css = [];
-            let cssFiles =[];
-            if (fs.existsSync(cssPath)) {
-                for(let i = 0; i<cssFilesCount;i++){
-                    let cssFile = styles[i];
-                    let cssFilePath = `${cssPath}/${cssFile}`;
-                    if(!fs.existsSync(cssFilePath)){
-                        cssExist.success=0;
-                        css.push(cssFile);
-                        cssExist.error = css;
-                        cssExist.msg=`css files Not Exist`;
-                    }else{
-                        cssFiles.push(cssFilePath)
-                    }
-                }
-                if(cssExist.success===0){
-                    return cssExist;
-                }else{
-                    return {success:1,css:cssFiles};
-                }
-            }else{
-                return{
-                    success:0,
-                    error:cssPath,
-                    msg:`${cssPath} Not Exist`
-                }
+    checkAssets(widgetName){
+
+        const assetsPath  = `installed/${widgetName}/assets`;
+        const imagesPath  = `installed/${widgetName}/assets/image`;
+        const jsPath      = `installed/${widgetName}/assets/js`;
+        const cssPath     = `installed/${widgetName}/assets/css`;
+        let errors =[];
+        if (!fs.existsSync(assetsPath)) {
+            errors.push(`${assetsPath} Not Exist`);
+        }
+        if (!fs.existsSync(imagesPath)) {
+            errors.push(`${imagesPath} Not Exist`);
+        }
+        if (!fs.existsSync(jsPath)) {
+            errors.push(`${jsPath} Not Exist`);
+        }
+        if (!fs.existsSync(cssPath)) {
+            errors.push(`${cssPath} Not Exist`);
+        }
+        if(errors.length !=0){
+            return {
+                success:0,
+                error:errors
             }
         }else{
             return {
-                success:1,
-                css:cssFiles
+                success:1
             }
         }
-
-    }
-    checkJsFiles(widgetName){
-        const jsScripts    = this.getWidgetConfiguration(widgetName).scripts;
-        const jsPath       = `installed/${widgetName}/assets/js`;
-        let jsFiles =[];
-        if(jsScripts){
-            const jsFilesCount = jsScripts.length;
-            let jsExist = {};
-            let js = [];
-            if (fs.existsSync(jsPath)) {
-                for(let i = 0; i<jsFilesCount;i++){
-                    let jsFile = jsScripts[i];
-                    let jsFilePath = `${jsPath}/${jsFile}`;
-                    if(!fs.existsSync(jsFilePath)){
-                        jsExist.success=0;
-                        js.push(jsFile);
-                        jsExist.error = js;
-                        jsExist.msg="JS files Not Exist";
-                    }else{
-                        jsFiles.push(jsFilePath);
-                    }
-                }
-                if(jsExist.success===0){
-                    return jsExist;
-                }else{
-                    return {success:1,js:jsFiles};
-                }
-            }else{
-                return {
-                    success:0,
-                    error:jsPath,
-                    msg:`${jsPath} Not Exist`
-                }
-            }
-        }else{
-            return {success:1,js:jsFiles};  
-        }
+        
     }
     checkLangFiles(widgetName){
         const langs = this.getWidgetConfiguration(widgetName).langs;
@@ -562,7 +517,7 @@ class Widget{
     }
     checkWidgetLang(widgetName,langCode){
         let widgetConfig = this.getWidgetConfiguration(widgetName);
-        if(widgetConfig && widgetConfig.langs && widgetConfig.langs.langCode==true){
+        if(widgetConfig && widgetConfig.langs && widgetConfig.langs.langCode == true){
             return langCode;
         }else{
             return "en_US";
@@ -588,9 +543,14 @@ class Widget{
                     if( widgets[wid] && widgets[wid].data &&  widgets[wid].data.entry_point){
                         let entryPointPath = path.join(__dirname,"/installed/",widgetName,"/views/", widgets[wid].data.entry_point)
                         if(fs.existsSync(entryPointPath)){
-                            //check widget language
-                            let locale = this.checkWidgetLang(language);
-                                widgets[wid].locale = this.getWidgetLang(widgetName)[widgetName][locale];
+                                //check widget language
+                                let locale = this.checkWidgetLang(language);
+                                if(this.getWidgetLang(widgetName)!=null){
+                                    widgets[wid].locale = this.getWidgetLang(widgetName)[widgetName][locale];
+                                }else{
+                                    widgets[wid].locale='';
+                                }
+                                console.log(widgets[wid].locale);
                                 widgets[wid][widgetName] = await pug.renderFile(entryPointPath,{
                                 locale:widgets[wid].locale
                             });
@@ -621,60 +581,6 @@ class Widget{
         }else{
             return{
                 success:0
-            }
-        }
-    }
-    VersionCompare(widgetName){
-        let oldConfigPath        = `installed/${widgetName}/config.json`;
-        let newConfigPath        = `installed/${widgetName}_upgrade/config.json`;
-        let oldConfig            = this.readFileContent(oldConfigPath);
-        let newConfig            = this.readFileContent(newConfigPath);
-        let errors =[];
-        if(oldConfig.success != 1){
-            errors.push(`installed/${widgetName}/config.json Not Exist`);
-        }
-        if(newConfig.success != 1){
-            errors.push(`installed/${widgetName}_upgrade/config.json Not Exist`);
-        }
-        if(foundationConfig.success != 1){
-            errors.push(`rams.config.json Not Exist`);
-        }
-        if(errors.length != 0){
-            return {
-                success:0
-            }
-        }else{
-            //version comparing
-            let splittedOldVersion      = oldConfig.version.split(".");
-            let splittednewVersion      = newConfig.version.split(".");
-            let oldVersionMajor         = splittedOldVersion[0];
-            let newVersionMajor         = splittednewVersion[0];
-
-            let oldVersionMainor        = splittedOldVersion[1];
-            let newVersionMainor        = splittednewVersion[1];
-
-            let oldVersionPatch         = splittedOldVersion[2];
-            let newVersionPatch         = splittednewVersion[2];
-            let upgrade = false;
-            if(oldVersionMajor < newVersionMajor){
-                upgrade = true;
-            }
-            //check equlaity
-            if(oldVersionMajor == newVersionMajor){
-                //check minor
-                if(oldVersionMainor < newVersionMainor){
-                    upgrade = true;
-                }
-                //check equilty
-                if(oldVersionMainor == newVersionMainor){
-                    //check patch
-                    if(oldVersionPatch < newVersionPatch){
-                        upgrade = true;
-                    }
-                    if(oldVersionPatch == newVersionPatch){
-                        upgrade = false;
-                    }
-                }
             }
         }
     }
@@ -719,21 +625,25 @@ class Widget{
     widgetFoundationVersion(widgetName){
         let configPath = `installed/${widgetName}/config.json`;
         let widgetConfig = this.readFileContent(configPath);
-        console.log(widgetConfig);
-        let widgetMinFoundationVersion = widgetConfig.data.min_foundation;
-        let foundationVersion = getData.getFoundationVersion();
-        //comparing version
-        let versionCompare = this.versionComapre(widgetMinFoundationVersion,foundationVersion);
-        if(versionCompare == "equal" || versionCompare == "upgrade"){
-            return {
-                success:1
+        if(widgetConfig.success==1){
+            let widgetMinFoundationVersion = widgetConfig.data.min_foundation;
+            let foundationVersion = getData.getFoundationVersion();
+            //comparing version
+            let versionCompare = this.versionComapre(widgetMinFoundationVersion,foundationVersion);
+            if(versionCompare == "equal" || versionCompare == "upgrade"){
+                return {
+                    success:1
+                }
+            }else{
+                return {
+                    success:0,
+                    msg:`Widget Min-foundation version ${widgetMinFoundationVersion} not compatible with foundation Version ${foundationVersion} Please Upgrade Foundation`
+                }
             }
         }else{
-            return {
-                success:0,
-                msg:`Widget Min-foundation version ${widgetMinFoundationVersion} not compatible with foundation Version ${foundationVersion} Please Upgrade Foundation`
-            }
+            return widgetConfig;
         }
+        
     }
     backUp(widgetName){
         let zip = new zipUnzipPackage();
@@ -772,8 +682,7 @@ class Installation extends Widget{
         let checkDriverDependancy = this.checkDriverDependancy(widgetName);
         let checkWidgetDependancy = this.checkWidgetDependancy(widgetName);
         let checkEntryPoint       = this.checkEntryPoint(widgetName);
-        let checkCssFiles         = this.checkCssFiles(widgetName);
-        let checkJsFiles          = this.checkJsFiles(widgetName);
+        let checkAssets           = this.checkAssets(widgetName);
         let checkLangsFiles       = this.checkLangFiles(widgetName);
         //
 
@@ -795,10 +704,8 @@ class Installation extends Widget{
             return checkWidgetDependancy;
         }else if(checkEntryPoint.success==0){
             return checkEntryPoint;
-        }else if(checkCssFiles.success==0){
-            return checkCssFiles;
-        }else if(checkJsFiles.success==0){
-            return checkJsFiles;
+        }else if(checkAssets.success==0){
+            return checkAssets;
         }else if(checkLangsFiles.success == 0){
             return checkLangsFiles;
         }else if(driverDep.success == 0){
