@@ -226,6 +226,7 @@ class Widget{
             const cssFilesCount = styles.length;
             let cssExist = {};
             let css = [];
+            let cssFiles =[];
             if (fs.existsSync(cssPath)) {
                 for(let i = 0; i<cssFilesCount;i++){
                     let cssFile = styles[i];
@@ -235,12 +236,14 @@ class Widget{
                         css.push(cssFile);
                         cssExist.error = css;
                         cssExist.msg=`css files Not Exist`;
+                    }else{
+                        cssFiles.push(cssFilePath)
                     }
                 }
                 if(cssExist.success===0){
                     return cssExist;
                 }else{
-                    return {success:1};
+                    return {success:1,css:cssFiles};
                 }
             }else{
                 return{
@@ -252,6 +255,7 @@ class Widget{
         }else{
             return {
                 success:1,
+                css:cssFiles
             }
         }
 
@@ -259,6 +263,7 @@ class Widget{
     checkJsFiles(widgetName){
         const jsScripts    = this.getWidgetConfiguration(widgetName).scripts;
         const jsPath       = `installed/${widgetName}/assets/js`;
+        let jsFiles =[];
         if(jsScripts){
             const jsFilesCount = jsScripts.length;
             let jsExist = {};
@@ -272,12 +277,14 @@ class Widget{
                         js.push(jsFile);
                         jsExist.error = js;
                         jsExist.msg="JS files Not Exist";
+                    }else{
+                        jsFiles.push(jsFilePath);
                     }
                 }
                 if(jsExist.success===0){
                     return jsExist;
                 }else{
-                    return {success:1};
+                    return {success:1,js:jsFiles};
                 }
             }else{
                 return {
@@ -287,7 +294,7 @@ class Widget{
                 }
             }
         }else{
-            return {success:1};  
+            return {success:1,js:jsFiles};  
         }
     }
     checkLangFiles(widgetName){
@@ -441,7 +448,7 @@ class Widget{
             }
         }
     }
-    listFiles(path){
+    listDirs(path){
         //check path existance 
         if (fs.existsSync(path)){
             let folders = fs.readdirSync(path);
@@ -481,7 +488,7 @@ class Widget{
        
     }
     async installedWidgets(path){
-        let installed = this.listFiles(path);
+        let installed = this.listDirs(path);
         if(installed.success==0){
             return installed;
         }else{
@@ -583,16 +590,30 @@ class Widget{
                         if(fs.existsSync(entryPointPath)){
                             //check widget language
                             let locale = this.checkWidgetLang(language);
-                            widgets[wid].locale = this.getWidgetLang(widgetName)[widgetName][locale];
-                            widgets[wid][widgetName] = await pug.renderFile(entryPointPath,{
+                                widgets[wid].locale = this.getWidgetLang(widgetName)[widgetName][locale];
+                                widgets[wid][widgetName] = await pug.renderFile(entryPointPath,{
                                 locale:widgets[wid].locale
                             });
-                            
+                            //get css files and js files
+                            let cssFiles   = this.listDirs(`installed/${widgetName}/assets/css`);
+                            let jsFiles    = this.listDirs(`installed/${widgetName}/assets/js`);
+                            let imageFiles = this.listDirs(`installed/${widgetName}/assets/image`);
+    
+                            if(cssFiles.success == 1 && cssFiles.folders.length !=0){
+                                widgets[wid].styles = cssFiles.folders;
+                            }
+                            if(jsFiles.success == 1 && jsFiles.folders.length != 0){
+                                widgets[wid].js = jsFiles.folders;
+                            }
+                            if(imageFiles.success == 1 && imageFiles.folders.length != 0){
+                                widgets[wid].image = imageFiles.folders;
+                            }
                         }
                     }
                     processedWidget.push(widgets[wid]);
                 }
             }
+            console.log(processedWidget);
             return {
                 success:1,
                 widgets:processedWidget
