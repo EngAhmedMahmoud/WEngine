@@ -12,65 +12,37 @@ let getData ={
         let foundationVersion = '3.0.0';
         return foundationVersion;
     },
-    getPages:()=>{
-        let pages = [
+    getWidgets:()=>{
+        let widgets = [
             {
-                name: "operator",
-                widgets: [
-                    {
-                        name: "camera_view",
-                        x: 50,
-                        y: 50,
-                        z: 6,
-                        w: "50",
-                        h: "50",
-                        color: "#42ecb1"
-                    },
-                    {
-                        name: "package",
-                        x: 0,
-                        y: 0,
-                        z: 2,
-                        w: "150",
-                        h: "150",
-                        color: "#e72626"
-                    },
-                    {
-                        name: "layout_widget",
-                        x: 20,
-                        y: 20,
-                        z: 2,
-                        w: 100,
-                        h: 100,
-                        color: "#eee026"
-                    }
-                ]
+                name: "camera_view",
+                x: 50,
+                y: 50,
+                z: 6,
+                w: "50",
+                h: "50",
+                color: "#42ecb1"
             },
             {
-                name: "Information",
-                widgets: [
-                    {
-                        name: "camera_view",
-                        x: 25,
-                        y: 25,
-                        z: 6,
-                        w: "50",
-                        h: "50",
-                        color: "#42ecb1"
-                    },
-                    {
-                        name: "layout_widget",
-                        x: 0,
-                        y: 0,
-                        z: 1,
-                        w: 100,
-                        h: 100,
-                        color: "#e72626"
-                    }
-                ]
+                name: "package",
+                x: 0,
+                y: 0,
+                z: 2,
+                w: "150",
+                h: "150",
+                color: "#e72626"
             },
+            {
+                name: "layout_widget",
+                x: 20,
+                y: 20,
+                z: 2,
+                w: 100,
+                h: 100,
+                color: "#eee026"
+            }
         ];
-        return pages;
+        return widgets;
     },
     getLocale:()=>{
         let language = "ar_EG";
