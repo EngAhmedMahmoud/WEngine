@@ -3,13 +3,14 @@ const schema = mongoose.Schema;
 const WidgetConfig = new schema({
     name: {
         type: String,
-        required: [true, "Widget Name Required!"],
-        index: true,
-        unique: true
+        required: [true, "Widget Name Required!"]
+        
     },
     variableName: {
         type: String,
-        required: [true, "VariableName Required!"]
+        required: [true, "VariableName Required!"],
+        index: true,
+        unique: true
     },
     description: {
         type: String,
