@@ -1,7 +1,7 @@
 "use strict";
 let getData ={
     installedDrivers : ()=>{
-        let installedDrivers = ["dell_driver"];
+        let installedDrivers = ["abst_driver","barco_cms_driver","camera_driver","dell_driver","host_manager","message_broadcast","shiv_driver","test_driver"];
         return installedDrivers;
     },
     installedWidgets : ()=>{
@@ -27,7 +27,7 @@ let getData ={
                         color: "#42ecb1"
                     },
                     {
-                        name: "camera_view",
+                        name: "package",
                         x: 0,
                         y: 0,
                         z: 2,
@@ -36,13 +36,13 @@ let getData ={
                         color: "#e72626"
                     },
                     {
-                        name: "layout_view",
-                        x: 0,
-                        y: 0,
-                        z: 1,
+                        name: "layout_widget",
+                        x: 20,
+                        y: 20,
+                        z: 2,
                         w: 100,
                         h: 100,
-                        color: "#e72626"
+                        color: "#eee026"
                     }
                 ]
             },

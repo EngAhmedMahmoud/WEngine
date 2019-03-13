@@ -232,7 +232,6 @@ router.get("/customPage/:page",async(req,res)=>{
     }
         
 });
-
 router.post("/upgrade",(req,res)=>{
     let url = req.body.url;
     let tmpFilePath = "tmp/widget.zip";
@@ -290,6 +289,5 @@ router.post("/upgrade",(req,res)=>{
             }
     });
     }
-})
-
+});
 module.exports = router;
