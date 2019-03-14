@@ -33,6 +33,8 @@ WidgetEngine.installedWidgets(installedWidgetsPath)
 //
 
 app.use(express.static(path.join(__dirname,"public")));
+app.use('/backup',express.static(path.join(__dirname,"backup")));
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use("/",widgetRouter);
