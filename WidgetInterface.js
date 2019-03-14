@@ -524,8 +524,8 @@ class Widget{
         }
 
     }
-    async customPage(){
-        const widgetsArray = getData.getWidgets();
+    async customPage(widgets){
+        const widgetsArray = widgets;
         const language = getData.getLocale();
         if(widgetsArray && widgetsArray.length!=0){
             let widgets = widgetsArray;

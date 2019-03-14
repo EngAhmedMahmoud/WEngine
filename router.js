@@ -219,18 +219,35 @@ router.post("/widgetLangs",(req,res)=>{
         }
     }
 });
-router.get("/customPage",async(req,res)=>{
-    
-    let customPage = await widgetEngine.customPage();
-    if( customPage.success == 1 ){
-        let widgets = customPage.widgets;
-        res.render('custom', {
-            widgets: widgets,
-        });
-        
+router.post("/customPage",async(req,res)=>{
+    let widgets = req.body.widgets;
+    let errors=[];
+    if(widgets){
+        if(widgets.length==0){
+            errors.push("Widgets are required");
+        }
     }else{
-        res.redirect("/");
-    }     
+        errors.push("Widgets are required");
+    }
+    if(errors.length !=0){
+        res.status(500).json({
+            success:0,
+            errors:errors
+        });
+    }else{
+       
+        let customPage = await widgetEngine.customPage(widgets);
+        if( customPage.success == 1 ){
+            let widgets = customPage.widgets;
+            res.render('custom', {
+                widgets: widgets,
+            });
+            
+        }else{
+            res.redirect("/");
+        }  
+    }
+       
 });
 router.post("/upgrade",(req,res)=>{
     let url = req.body.url;
