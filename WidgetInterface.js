@@ -456,6 +456,7 @@ class Widget{
                  let widgetName = widgets[i].variableName;
                  if(folders.includes(widgetName)){
                      result.push(widgetName);
+
                  }
              }
              if(result.length !=0){
@@ -471,6 +472,32 @@ class Widget{
              }
         }
         
+        
+    }
+    widgetStatus(){
+      return  WidgetModel.find({k},{_id:1,variableName:1,visibility:1})
+        .then((widgets)=>{
+            if(widgets.length !=0){
+                return {
+                    success:1,
+                    widgets:widgets,
+                    status:200
+                }
+            }else{
+                return {
+                    success:0,
+                    msg:"No Widgets Installed",
+                    status:404
+                }
+            }
+        })
+        .catch((error)=>{
+            return {
+                success:0,
+                msg:`Error Happen !! ${error}`,
+                status:500
+            }
+        });
         
     }
     readDirFileContent(path){
@@ -816,4 +843,3 @@ class Installation extends Widget{
 }
 var widgetInterface = new Installation();
 module.exports = widgetInterface;
-

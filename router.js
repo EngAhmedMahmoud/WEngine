@@ -324,4 +324,16 @@ router.get("/backup",(req,res)=>{
         });
     }
 });
+router.get("/management",async(req,res)=>{
+    let widgets = await widgetEngine.widgetStatus();
+});
+router.get("/widgets_status",async(req,res)=>{
+    widgetEngine.widgetStatus()
+    .then((data)=>{
+        res.status(data.status).json(data);
+    })
+    .catch((error)=>{
+        res.status(error.status).json(error);
+    });
+});
 module.exports = router;
