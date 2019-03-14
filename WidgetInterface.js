@@ -419,18 +419,18 @@ class Widget{
         }
        
     }
-    async visibilityControl(widgetId){
-        const visibilityVal = await WidgetModel.findById(widgetId);
+    async visibilityControl(widgetName){
+        const visibilityVal = await WidgetModel.findOne({variableName:widgetName});
         let visibilityUpdate;
         if(visibilityVal){
             if(visibilityVal.visibility == true){
-                visibilityUpdate = await WidgetModel.findOneAndUpdate({_id:widgetId},{visibility:false},{new:true});
+                visibilityUpdate = await WidgetModel.findOneAndUpdate({variableName:widgetName},{visibility:false},{new:true});
                     return {
                         success:1,
                         data:visibilityUpdate.visibility
                     }
                }else{
-                visibilityUpdate = await WidgetModel.findOneAndUpdate({_id:widgetId},{visibility:true},{new:true});
+                visibilityUpdate = await WidgetModel.findOneAndUpdate({variableName:widgetName},{visibility:true},{new:true});
                     return {
                         success:1,
                         data:visibilityUpdate.visibility
@@ -570,6 +570,7 @@ class Widget{
                         }
                     }
                     processedWidget.push(widgets[wid]);
+                    
                 }
             }
             return {
