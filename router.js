@@ -156,10 +156,10 @@ router.get("/installedWidgets",async(req,res)=>{
     }
 });
 router.post("/widgetVisiability",async(req,res)=>{
-    let widgetId = req.body.widgetId;
+    let widgetName = req.body.widgetName;
     let errors =[];
-    if(!widgetId){
-        errors.push("widgetId is required !!!");
+    if(!widgetName){
+        errors.push("widgetName is required !!!");
     }
     if(errors && errors.length != 0 ){
         res.status(500).json({
@@ -167,7 +167,7 @@ router.post("/widgetVisiability",async(req,res)=>{
             errors:errors
         });
     }else{
-        widgetEngine.visibilityControl(widgetId)
+        widgetEngine.visibilityControl(widgetName)
             .then((data)=>{
                 if(data.success ==1){
                     res.status(200).json({
@@ -178,7 +178,7 @@ router.post("/widgetVisiability",async(req,res)=>{
                 }else{
                     res.status(404).json({
                         success:0,
-                        msg:"This id not exist",
+                        msg:"This widgetName not exist",
                     }); 
                 }
                 
@@ -219,8 +219,9 @@ router.post("/widgetLangs",(req,res)=>{
         }
     }
 });
-router.post("/customPage",async(req,res)=>{
+router.post("/custom",async(req,res)=>{
     let widgets = req.body.widgets;
+    widgets=JSON.parse(widgets);
     let errors=[];
     if(widgets){
         if(widgets.length==0){
@@ -247,6 +248,9 @@ router.post("/customPage",async(req,res)=>{
         }  
     }
        
+});
+router.get("/test",(req,res)=>{
+   res.render("test")    
 });
 router.post("/upgrade",(req,res)=>{
     let url = req.body.url;
