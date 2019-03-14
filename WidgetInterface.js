@@ -670,6 +670,17 @@ class Widget{
              }
         }
     }
+    watchingDir(){
+        //get installed widgets
+        // let installedWidgets = await this.installedWidgets(`installed`);
+        // console.log(installedWidgets);
+        fs.watch(`./installed/`, { encoding: 'utf-8',recursive:true,persistent: true }, (eventType, filename) => {
+            if (filename) {
+              console.log(filename.toString('utf8'));
+              console.log(eventType);
+            }
+        });
+    }
 
 }
 class Installation extends Widget{
