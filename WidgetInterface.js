@@ -142,7 +142,7 @@ class Widget{
                     if(!fs.existsSync(depDriverPath)){
                         driverExist.success=0;
                         drivers.push(driver);
-                        driverExist.errors = drivers;
+                        driverExist.error = drivers;
                         driverExist.msg = "Driver dependancy files not exist"
                     }
                 }
@@ -154,7 +154,7 @@ class Widget{
             }else{
                 return {
                     success:0,
-                    errors:`${driverPath} Not exist`
+                    msg:`${driverPath} Not exist`,
                 }
             }
         }else{
@@ -243,6 +243,7 @@ class Widget{
         if(errors.length !=0){
             return {
                 success:0,
+                msg:"Error in widget assets folder",
                 error:errors
             }
         }else{
@@ -280,7 +281,7 @@ class Widget{
             }else{
                 return {
                     success:0,
-                    error:`${langsPath} Not exist`
+                    msg:`${langsPath} Not exist`
                 }
             }
         }else{
@@ -363,7 +364,7 @@ class Widget{
             let difference = drivers.filter(x => !Drivers.includes(x));
                return{
                    success:0,
-                   msg:`please check that ${drivers} is installed`
+                   msg:`please check that ${difference} is installed`
                }
            }
         }else{
@@ -577,7 +578,8 @@ class Widget{
             }
         }else{
             return{
-                success:0
+                success:0,
+                msg:"Sorry No widgets available"
             }
         }
     }
@@ -670,7 +672,6 @@ class Widget{
              }
         }
     }
-
 }
 class Installation extends Widget{
     async install(widgetName){
