@@ -324,16 +324,11 @@ router.get("/backup",(req,res)=>{
         });
     }
 });
-router.get("/management",async(req,res)=>{
-    let widgets = await widgetEngine.widgetStatus();
-});
 router.get("/widgets_status",async(req,res)=>{
-    widgetEngine.widgetStatus()
-    .then((data)=>{
-        res.status(data.status).json(data);
-    })
-    .catch((error)=>{
-        res.status(error.status).json(error);
-    });
+    let widgets = await widgetEngine.widgetStatus();
+    res.status(widgets.status).json(widgets);
 });
+router.get("/",(req,res)=>{
+    res.render("management")    
+ });
 module.exports = router;
