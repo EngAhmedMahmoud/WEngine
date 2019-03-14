@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        meta(http-equiv="X-UA-Compatible", content="ie=edge")
+        title Document
+    body
+        form(action="/custom", method="post")
+            input(type="text" ,name="widgets",value="{\"widgets\": [\r\n{\r\n\"name\": \"widgey_data\",\r\n\"x\": 25,\r\n\"y\": 25,\r\n\"z\": 1,\r\n\"w\": \"50\",\r\n\"h\": \"50\",\r\n\"color\": \"#42ecb1\"\r\n}\r\n]\r\n}")
+            input(type="submit", value="send")
