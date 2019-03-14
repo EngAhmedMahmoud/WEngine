@@ -1,11 +1,11 @@
 "use strict";
 let getData ={
     installedDrivers : ()=>{
-        let installedDrivers = ["abst_driver","barco_cms_driver","camera_driver","dell_driver","host_manager","message_broadcast","shiv_driver","test_driver"];
+        let installedDrivers = ["abst_driver","testvar","barco_cms_driver","camera_driver","dell_driver","host_manager","message_broadcast","shiv_driver","test_driver"];
         return installedDrivers;
     },
     installedWidgets : ()=>{
-        let installedWidgets = [];
+        let installedWidgets = ["btWidget","camera_view","layout_widget"];
         return installedWidgets;
     },
     getFoundationVersion:()=>{
@@ -13,7 +13,7 @@ let getData ={
         return foundationVersion;
     },
     getLocale:()=>{
-        let language = "ar_EG";
+        let language = "en_US";
         if(language){
             return language;
         }else{
