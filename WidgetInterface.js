@@ -682,14 +682,12 @@ class Installation extends Widget{
         let checkAssets           = this.checkAssets(widgetName);
         let checkLangsFiles       = this.checkLangFiles(widgetName);
         //
-
         //check dependancies
         let depDrivers = getData.installedDrivers();
         let depWidgets = getData.installedWidgets();
         let driverDep = this.listAndCheckDependantDrivers(depDrivers,widgetName);
         let widgetDep = this.listAndCheckDependantWidgets(depWidgets,widgetName);
         //
-
         //check version foundation with widget
         let widgetVersion = this.widgetFoundationVersion(widgetName);
         //
@@ -813,7 +811,6 @@ class Installation extends Widget{
         
     }
     }
-
 }
 var widgetInterface = new Installation();
 module.exports = widgetInterface;
