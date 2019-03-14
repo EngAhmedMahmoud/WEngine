@@ -12,38 +12,6 @@ let getData ={
         let foundationVersion = '3.0.0';
         return foundationVersion;
     },
-    getWidgets:()=>{
-        let widgets = [
-            {
-                name: "camera_view",
-                x: 50,
-                y: 50,
-                z: 6,
-                w: "50",
-                h: "50",
-                color: "#42ecb1"
-            },
-            {
-                name: "package",
-                x: 0,
-                y: 0,
-                z: 2,
-                w: "150",
-                h: "150",
-                color: "#e72626"
-            },
-            {
-                name: "layout_widget",
-                x: 20,
-                y: 20,
-                z: 2,
-                w: 100,
-                h: 100,
-                color: "#eee026"
-            }
-        ];
-        return widgets;
-    },
     getLocale:()=>{
         let language = "ar_EG";
         if(language){
