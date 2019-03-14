@@ -242,7 +242,6 @@ router.post("/customPage",async(req,res)=>{
             res.render('custom', {
                 widgets: widgets,
             });
-            
         }else{
             res.redirect("/");
         }  
@@ -305,6 +304,20 @@ router.post("/upgrade",(req,res)=>{
                 });
             }
     });
+    }
+});
+router.get("/backup",(req,res)=>{
+    //list backup dir
+    let path   ='backup'; 
+    let backup = widgetEngine.listDirs(path);
+    if(backup.success ==1){
+        backup.url = `${req.headers.host}/backup/folder_name`;
+        res.status(200).json(backup);
+    }else{
+        res.status(500).json({
+            success:0,
+            msg:"No backup files"
+        });
     }
 });
 module.exports = router;
