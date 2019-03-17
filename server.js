@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const widgetRouter = require("./router")
 const DB_CONNECTION = require("./utils/DatabaseConnection");
+const cors = require("cors");
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST;
 const WidgetEngine = require("./WidgetInterface");
@@ -32,11 +33,14 @@ WidgetEngine.installedWidgets(installedWidgetsPath)
 });
 //
 
-app.use(express.static(path.join(__dirname,"public")));
-app.use('/backup',express.static(path.join(__dirname,"backup")));
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+//cors domains
+app.use(cors());
+//
+app.use(express.static(path.join(__dirname,"public")));
+app.use('/backup',express.static(path.join(__dirname,"backup")));
 app.use("/",widgetRouter);
 
 app.listen(PORT,()=>{

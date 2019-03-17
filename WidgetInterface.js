@@ -475,7 +475,7 @@ class Widget{
         
     }
     widgetStatus(){
-      return  WidgetModel.find({},{_id:1,variableName:1,visibility:1})
+      return  WidgetModel.find({},{_id:1,variableName:1,visibility:1,description:1,version:1})
         .then((widgets)=>{
             if(widgets.length !=0){
                 return {
