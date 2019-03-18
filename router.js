@@ -93,7 +93,7 @@ router.post("/delete",async(req,res)=>{
     }
 })
 router.post("/depDrivers",(req,res)=>{
-    let drivers    = req.body.drivers.split(",");
+    let drivers    = req.body.drivers;
     let widgetName = req.body.widgetName;
     let errors =[];
     if(!drivers){
@@ -108,7 +108,7 @@ router.post("/depDrivers",(req,res)=>{
             errors:errors
         });
     }else{
-        
+        drivers = drivers.split(",");
         let dependantDrivers = widgetEngine.listAndCheckDependantDrivers(drivers,widgetName);
         if( dependantDrivers.success == 0 ){
             res.status(500).json(dependantDrivers);
@@ -120,7 +120,7 @@ router.post("/depDrivers",(req,res)=>{
     
 });
 router.post("/depWidgets",(req,res)=>{
-    let widgets    = req.body.widgets.split(",");
+    let widgets    = req.body.widgets;
     let widgetName = req.body.widgetName;
     let errors =[];
     if(!widgets){
@@ -135,7 +135,7 @@ router.post("/depWidgets",(req,res)=>{
             errors:errors
         });
     }else{
-        
+        widgets = widgets.split(",");
         let dependantWidgets = widgetEngine.listAndCheckDependantWidgets(widgets,widgetName);
         if( dependantWidgets.success == 0 ){
             res.status(500).json(dependantWidgets);

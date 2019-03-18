@@ -558,6 +558,7 @@ class Widget{
         if(widgetsArray && widgetsArray.length!=0){
             let widgets = widgetsArray;
             let widgetsCount = widgets.length;
+           
             let processedWidget = [];
             for(let wid =0; wid<widgetsCount;wid++){
                 let widgetName =widgets[wid].name;
@@ -596,6 +597,7 @@ class Widget{
                             }
                         }
                     }
+                    console.log(widgets[wid])
                     processedWidget.push(widgets[wid]);
                     
                 }

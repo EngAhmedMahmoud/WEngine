@@ -7,5 +7,5 @@ html(lang="en")
         title Document
     body
         form(action="/custom", method="post")
-            input(type="text" ,name="widgets",value="{\"widgets\": [\r\n{\r\n\"name\": \"widgey_data\",\r\n\"x\": 25,\r\n\"y\": 25,\r\n\"z\": 1,\r\n\"w\": \"50\",\r\n\"h\": \"50\",\r\n\"color\": \"#42ecb1\"\r\n}\r\n]\r\n}")
+            input(type="text" ,name="widgets",value="[\r\n{\r\n\"name\": \"widgey_data\",\r\n\"x\": 25,\r\n\"y\": 25,\r\n\"z\": 1,\r\n\"w\": \"50\",\r\n\"h\": \"50\",\r\n\"color\": \"#42ecb1\"\r\n}\r\n]")
             input(type="submit", value="send")
