@@ -1,7 +1,7 @@
 "use strict";
 let getData ={
     installedDrivers : ()=>{
-        let installedDrivers = ["abst_driver","testvar","barco_cms_driver","camera_driver","dell_driver","host_manager","message_broadcast","shiv_driver","test_driver"];
+        let installedDrivers = [];
         return installedDrivers;
     },
     installedWidgets : ()=>{
