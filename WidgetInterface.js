@@ -364,7 +364,8 @@ class Widget{
             let difference = drivers.filter(x => !Drivers.includes(x));
                return{
                    success:0,
-                   msg:`please check that ${difference} is installed`
+                   msg:`please check that ${difference} drivers is installed`,
+                   dependancies:difference
                }
            }
         }else{
@@ -391,10 +392,10 @@ class Widget{
                }
            }else{
             let difference = widgets.filter(x => !Widgets.includes(x));
-
                return{
                    success:0,
-                   msg:`please check that ${difference} is installed`
+                   msg:`please check that  ${difference} widgets is installed`,
+                   dependancies:difference
                }
            }
         }else{
@@ -705,6 +706,7 @@ class Widget{
 }
 class Installation extends Widget{
     async install(widgetName){
+    try{
         //check files and dirs
         let checkWidgetDirectory  = this.checkWidgetDirectory(widgetName);
         let checkDriverDependancy = this.checkDriverDependancy(widgetName);
@@ -715,10 +717,9 @@ class Installation extends Widget{
         //
         //check dependancies
         let depDrivers = getData.installedDrivers();
-        let depWidgets = getData.installedWidgets();
+        let depWidgets = await this.installedWidgets(path.join(__dirname,`installed`));
         let driverDep = this.listAndCheckDependantDrivers(depDrivers,widgetName);
-        let widgetDep = this.listAndCheckDependantWidgets(depWidgets,widgetName);
-        //
+        let widgetDep = this.listAndCheckDependantWidgets(depWidgets.installedWidgets,widgetName);
         //check version foundation with widget
         let widgetVersion = this.widgetFoundationVersion(widgetName);
         //
@@ -752,6 +753,14 @@ class Installation extends Widget{
                 }
             }
         }
+    }catch(error){
+        //delete file in installed dir 
+        this.deleteDir(`installed/${widgetName}`);
+        return{
+            success:0,
+            msg:"Error Happened!!!!!!"
+        }
+    }
     }
     async uninstall(widgetName,installedWidgetPath){
         this.deleteDir(installedWidgetPath);
