@@ -1,0 +1,85 @@
+body {
+    background-color: #f7f2f2;
+}
+
+.header {
+    color: aliceblue;
+    margin-left: 2%;
+    font-size: 1.5em;
+}
+
+.title {
+    font-size: 1.5em;
+}
+
+.dw-info {
+    padding-top: 2%;
+}
+
+/* info list styles */
+.card {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    /* this adds the "card" effect */
+    padding: 0.05em;
+    background-color: #fff;
+}
+
+.card-header {
+    font-size: 1.5em;
+}
+
+.card-panal {
+    padding: 0;
+    height: 600px;
+}
+
+.list-group {
+    height: 100%;
+    overflow-y: scroll;
+    overflow: auto;
+}
+
+.list-group-item:first-child {
+    border-radius: 0;
+}
+
+p {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.panel-body {
+    padding: 2%;
+    border: 1px solid lightgray;
+}
+
+
+/* toggle button */
+
+.holder {
+    position: absolute;
+    display: inline-block;
+    left: 85%;
+    cursor: pointer;
+}
+
+
+
+.control {
+    font-size: 1.8em;
+
+}
+.control:hover {
+    font-size: 1.7em;
+}
+.msg{
+    padding: 0;
+    text-align: center;
+    height: -webkit-fill-available;
+    font-weight: 300;
+    color: lightpink;
+    font-size: 1.6em;
+    margin: auto;
+    top: 35%;
+    position: relative;
+}

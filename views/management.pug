@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        meta(http-equiv="X-UA-Compatible", content="ie=edge")
+        title Widget managment
+        //- fontawesome Icons
+        link(rel='stylesheet', href='css/all.css')
+        //- Bootstrap CSS
+        link(rel='stylesheet', href='css/bootstrap.min.css')
+        //- Custom style
+        link(rel='stylesheet', href='css/style.css')
+    body
+    nav.navbar.navbar-dark.bg-dark
+        span.header
+            i.fas.fa-columns(style='font-size: 1.3em;') &nbsp;
+            strong.title   Widget Managment Engine
+
+    .container-fluid  
+      //- Foundation info card 
+
+      .row.dw-info
+        .col-md-4
+        .col-md-4(style='padding:0;')
+          //-Drivers Card
+          .card(style='width: 100%;')
+            .card-header.bg-dark.text-white.md-3
+              i.far.fa-eye(style='font-size: 1.1em;' ) &nbsp; &nbsp;
+                | Widget Activation
+            .card-body.card-panal
+              ul#list-group-accordion.list-group
+                if widgets && widgets.success === 1
+                    each widget in widgets.widgets
+                        li.list-group-item
+                            .list-group-item
+                                i.fas.fa-columns(style='font-size: 1.1em;') &nbsp; &nbsp;
+                                span  #{widget.variableName}
+                                .holder
+                                    if(widget.visibility === true)
+                                        i.far.fa-eye.text-success.control(onclick=`showHide('${widget.variableName}')`,id=`${widget.variableName}`)
+                                    else
+                                        i.far.fa-eye-slash.text-muted.control(onclick=`showHide('${widget.variableName}')`,id=`${widget.variableName}`)
+
+                else
+                    li.list-group-item
+                      .msg.text-warning
+                        i.fas.fa-exclamation-triangle(style='font-size: 1.6em;')
+                        p No Installed Widgets
+    script(src='js/jquery-3.3.1.min.js')
+    script(src='js/popper.min.js')
+    script(src='js/bootstrap.min.js')
+    script(src='js/widget.js')
