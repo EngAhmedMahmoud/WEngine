@@ -362,11 +362,17 @@ class Widget{
                }
            }else{
             let difference = drivers.filter(x => !Drivers.includes(x));
-               return{
-                   success:0,
-                   msg:`please check that ${difference} drivers is installed`,
-                   dependancies:difference
-               }
+            if(difference.length===0){
+                return {
+                    success:1,
+                }
+            }else{
+                return{
+                    success:0,
+                    msg:`please check that ${difference} drivers is installed`,
+                    dependancies:difference
+                }
+            }
            }
         }else{
             return{
@@ -392,11 +398,18 @@ class Widget{
                }
            }else{
             let difference = widgets.filter(x => !Widgets.includes(x));
-               return{
-                   success:0,
-                   msg:`please check that  ${difference} widgets is installed`,
-                   dependancies:difference
-               }
+            if(difference.length===0){
+                return {
+                    success:1,
+                }
+            }else{
+                return{
+                    success:0,
+                    msg:`please check that  ${difference} widgets is installed`,
+                    dependancies:difference
+                }
+            }
+               
            }
         }else{
             return{
