@@ -287,7 +287,7 @@ class Widget{
         }else{
             return {
                 success:0,
-                error:"No langs in config files"
+                error:`No langs in config files widgetName:${widgetName}`
             }
         }
     }
