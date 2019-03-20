@@ -7,6 +7,7 @@ const path = require("path");
 
 router.post("/install",(req,res)=>{
     let url = req.body.url;
+    console.log(req.body);
     let tmpFilePath = "tmp/widget.zip";
     let dest  = "installed/widget";
     let errors=[];
@@ -18,12 +19,7 @@ router.post("/install",(req,res)=>{
         })
     }else{
         http.get(url,(response)=>{          
-            if(response.headers['content-type'] !='application/zip'){
-                res.status(404).json({
-                    success:0,
-                    msg:"Zip File Not Exist"
-                });
-            }else{
+            
                 response.on("data",async(data)=>{
                     let downloadFile  = widgetEngine.downloadFile(tmpFilePath,data);
                     //unziping files 
@@ -67,7 +63,7 @@ router.post("/install",(req,res)=>{
                         } 
                         }
                 });
-            }
+            
     });
     }
     
