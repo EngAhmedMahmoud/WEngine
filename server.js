@@ -32,7 +32,6 @@ WidgetEngine.installedWidgets(installedWidgetsPath)
     console.log(error);
 });
 //
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
