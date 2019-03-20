@@ -328,7 +328,10 @@ router.get("/widgets_status",async(req,res)=>{
     let widgets = await widgetEngine.widgetStatus();
     res.status(widgets.status).json(widgets);
 });
-router.get("/",(req,res)=>{
-    res.render("management")    
+router.get("/",async(req,res)=>{
+    //get installed widgets
+    let widgets = await widgetEngine.widgetStatus();
+    console.log(widgets);
+    res.render("management",{widgets});   
  });
 module.exports = router;
