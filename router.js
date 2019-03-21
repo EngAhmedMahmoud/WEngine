@@ -329,5 +329,6 @@ router.get("/",async(req,res)=>{
     let widgets = await widgetEngine.widgetStatus();
     console.log(widgets);
     res.render("management",{widgets});   
- });
+});
+
 module.exports = router;
