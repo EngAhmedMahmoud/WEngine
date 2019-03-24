@@ -1,7 +1,7 @@
 "use strict"
 const hide = ['fa-eye-slash', 'text-muted'];
 const show = ['fa-eye', 'text-success'];
-const URL  = 'http://127.0.0.1:3000/widgetVisiability';
+const URL  = '/widgetVisiability';
 
 
 function showHide(w_id) {

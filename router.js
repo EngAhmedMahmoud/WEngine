@@ -217,7 +217,7 @@ router.post("/widgetLangs",(req,res)=>{
 });
 router.post("/custom",async(req,res)=>{
     let widgets = req.body.widgets;
-    widgets=JSON.parse(widgets);
+   
     let errors=[];
     if(widgets){
         if(widgets.length==0){
@@ -232,15 +232,16 @@ router.post("/custom",async(req,res)=>{
             errors:errors
         });
     }else{
-       
+        widgets=JSON.parse(widgets);
         let customPage = await widgetEngine.customPage(widgets);
-        if( customPage.success == 1 ){
+        console.log(customPage);
+        if( customPage.success == 1 && customPage.widgets.length!==0){
             let widgets = customPage.widgets;
             res.render('custom', {
                 widgets: widgets,
             });
         }else{
-            res.redirect("/");
+            res.render("notFound");
         }  
     }
        
