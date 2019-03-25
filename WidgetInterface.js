@@ -287,7 +287,8 @@ class Widget{
         }else{
             return {
                 success:0,
-                error:`No langs in config files widgetName:${widgetName}`
+                error:`No langs in config files widgetName:${widgetName}`,
+                msg:`No langs in config files widgetName:${widgetName}`
             }
         }
     }
@@ -370,7 +371,8 @@ class Widget{
                 return{
                     success:0,
                     msg:`please check that ${difference} drivers is installed`,
-                    dependancies:difference
+                    dependancies:difference,
+                    driver:1
                 }
             }
            }
@@ -406,7 +408,8 @@ class Widget{
                 return{
                     success:0,
                     msg:`please check that  ${difference} widgets is installed`,
-                    dependancies:difference
+                    dependancies:difference,
+                    widget:1
                 }
             }
                
@@ -736,23 +739,23 @@ class Installation extends Widget{
         //check version foundation with widget
         let widgetVersion = this.widgetFoundationVersion(widgetName);
         //
-        if(checkWidgetDirectory.success==0){
+        if(checkWidgetDirectory.success === 0){
             return checkWidgetDirectory;
-        }else if(checkDriverDependancy.success==0){
+        }else if(checkDriverDependancy.success=== 0){
             return checkDriverDependancy;
-        }else if(checkWidgetDependancy.success == 0){
+        }else if(checkWidgetDependancy.success === 0){
             return checkWidgetDependancy;
-        }else if(checkEntryPoint.success==0){
+        }else if(checkEntryPoint.success===0){
             return checkEntryPoint;
-        }else if(checkAssets.success==0){
+        }else if(checkAssets.success===0){
             return checkAssets;
-        }else if(checkLangsFiles.success == 0){
+        }else if(checkLangsFiles.success === 0){
             return checkLangsFiles;
-        }else if(driverDep.success == 0){
+        }else if(driverDep.success === 0){
             return driverDep;
-        }else if(widgetDep.success == 0){
+        }else if(widgetDep.success === 0){
             return widgetDep;
-        }else if(widgetVersion.success ==0){
+        }else if(widgetVersion.success ===0){
             return widgetVersion;
         }else{
             //get widget configuration
@@ -801,7 +804,7 @@ class Installation extends Widget{
         let newConfig      = this.readFileContent(newConfigPath);
         let errors         = [];
         const oldWidgetPath = `installed/${widgetName}_upgrade/`;
-        const newUpgradedWidget = `installed/${widgetName}/`;
+        const newUpgradedWidget  = `installed/${widgetName}/`;
 
         if(oldConfig.success != 1){
             errors.push(`installed/${widgetName}/config.json Not Exist`);
@@ -813,13 +816,23 @@ class Installation extends Widget{
             this.deleteDir(oldWidgetPath);
             return {
                 success:0,
-                error:errors
+                error:errors,
+                msg:errors[0]
             }
         }else{
+            //compare foundation version
+            let widgetVersion = this.widgetFoundationVersion(`${widgetName}_upgrade`);
+            console.log(widgetVersion);
+            if(widgetVersion.success===0){
+                console.log(`foundation compare ${widgetVersion}`);
+                return widgetVersion;
+            }
             //comparing two versions
             let versionComparison = this.versionComapre(oldConfig.data.version,newConfig.data.version);
+            console.log(versionComparison);
             if(versionComparison == "upgrade"){
                 //delete old widget
+                console.log("Version upgrade equality")
                 let widgetDelete = await this.deleteWidget(widgetName);
                 if(widgetDelete.success==0){
                     return widgetDelete;

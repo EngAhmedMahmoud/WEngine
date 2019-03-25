@@ -19,7 +19,6 @@ router.post("/install",(req,res)=>{
         })
     }else{
         http.get(url,(response)=>{          
-            
                 response.on("data",async(data)=>{
                     let downloadFile  = widgetEngine.downloadFile(tmpFilePath,data);
                     //unziping files 
@@ -36,15 +35,15 @@ router.post("/install",(req,res)=>{
                         res.status(500).json(downloadFile);
                     }else if(extractWidget.success == 0){
                         widgetEngine.deleteDir(installedWidgetPath);
-                        res.status(500).json(extractWidget)
+                        res.status(500).json(extractWidget);
                     }
                     else if(deleteWidget.success == 0){
                         widgetEngine.deleteDir(installedWidgetPath);
-                        res.status(500).json(deleteWidget)
+                        res.status(500).json(deleteWidget);
                     }
                     else if(renameWidget.success == 0){
                             widgetEngine.deleteDir(dest);
-                            res.status(500).json(renameWidget)
+                            res.status(500).json(renameWidget);
                     }else{
                         //installing and saving widget
                         let install = await widgetEngine.install(widgetName);
@@ -246,11 +245,9 @@ router.post("/custom",async(req,res)=>{
     }
        
 });
-router.get("/test",(req,res)=>{
-   res.render("test")    
-});
 router.post("/upgrade",(req,res)=>{
     let url = req.body.url;
+    console.log(url);
     let tmpFilePath = "tmp/widget.zip";
     let dest  = "installed/widget";
     let errors=[];
@@ -262,12 +259,6 @@ router.post("/upgrade",(req,res)=>{
         });
     }else{
         http.get(url,(response)=>{          
-            if(response.headers['content-type'] !='application/zip'){
-                res.status(404).json({
-                    success:0,
-                    msg:"Zip File Not Exist"
-                });
-            }else{
                 response.on("data",async (data)=>{
                     let downloadFile  = widgetEngine.downloadFile(tmpFilePath,data);
                     //unziping files 
@@ -279,7 +270,6 @@ router.post("/upgrade",(req,res)=>{
                     const widgetName = widgetConfig.variable_name;
                     const installedWidgetPath = `installed/${widgetName}_upgrade/`;
                     let renameWidget = widgetEngine.renameDir(dest,installedWidgetPath);
-
                     if(downloadFile.success == 0){
                         widgetEngine.deleteDir(installedWidgetPath);
                         res.status(500).json(downloadFile);
@@ -293,17 +283,18 @@ router.post("/upgrade",(req,res)=>{
                     else if(renameWidget.success == 0){
                         widgetEngine.deleteDir(dest);
                         res.status(500).json(renameWidget)
-                    }else{
+                    }
+                    else{
                         //here installing the new widget
                         let upgrade = await widgetEngine.upgrade(widgetName);
-                        if(upgrade.success==0){
+                        if(upgrade.success ===0){
+                            widgetEngine.deleteDir(installedWidgetPath);
                             res.status(404).json(upgrade); 
                         }else{
                             res.status(200).json(upgrade); 
                         }
                     }
                 });
-            }
     });
     }
 });
